@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -e # exit immediately if a simple command exits with a non-zero status
+set -u # report the usage of uninitialized variables
+
+CONFD_DIR="/var/vcap/jobs/logstash/pipelines"
+
+# Pipelines
+<% p("logstash.pipelines", []).each do |pipeline| %>
+mkdir "${CONFD_DIR}/<%= pipeline.name %>"
+cat <<'JSON' > "${CONFD_DIR}/<%= pipeline.name %>/config.conf"
+<%= JSON.dump(pipeline.config) %>
+JSON
+
+<% end %>

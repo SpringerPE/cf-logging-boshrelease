@@ -24,14 +24,14 @@ case $1 in
 
     ulimit -n 65536
 
-    export ES_HOSTS=`cat $JOB_DIR/config/elasticsearch-hosts`
-    sed "s|__ES_HOSTS__|${ES_HOSTS}|g" $JOB_DIR/config/logstash.conf > $JOB_DIR/config/logstash-es.conf
-    source $JOB_DIR/config/env.sh
+    export ES_HOSTS=`cat $JOB_DIR/elasticsearch-hosts`
+    sed -i "s|__ES_HOSTS__|${ES_HOSTS}|g" $JOB_DIR/config/logstash.conf
+    source $JOB_DIR/env.sh
     echo $$ > $PIDFILE
 
     exec chpst -u $RUNAS:$RUNAS \
        /var/vcap/packages/logstash/bin/logstash \
-      --path.config $JOB_DIR/config/logstash-es.conf \
+      --path.config $JOB_DIR/config/ \
       --path.data $STORE_DIR \
       --path.logs $LOG_DIR \
       >>$LOG_DIR/logstash.stdout.log 2>>$LOG_DIR/logstash.stderr.log

@@ -5,10 +5,12 @@ templates:
   bin/ctl: bin/ctl
   bin/post-start: bin/post-start
   config/logstash.conf: config/logstash.conf
-  config/tls.crt: config/tls.crt
-  config/tls.key: config/tls.key
-  config/env.sh: config/env.sh
+  config/tls.crt: tls.crt
+  config/tls.key: tls.key
+  config/env.sh: env.sh
   config/elasticsearch-hosts: config/elasticsearch-hosts
+  config/pipelines.yml: config/pipelines.yml
+  bin/pre-start: bin/pre-start
 
 packages:
 - java
@@ -20,9 +22,15 @@ consumes:
   optional: true
 
 properties:
+  logstash.pipelines:
+    description: Definition of pipelines.yml, next to logstash.conf
+    default:
+    - name: dots
+      config: "input { tcp { port => 5514 } } output { stdout { codec => json_lines } }"
   logstash.conf:
-    default: |-
-      input {  tcp { port => 5514 } } output { stdout { codec => json_lines } }
+    example: |-
+      cloud.id: "cf-test:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+      cloud.auth: "elastic:XXXXXXXXXXXXXXXXXXXXXXXXXXX"
     description: logstash.conf
   logstash.tls.certificate:
     description: |-
@@ -34,8 +42,8 @@ properties:
           add_field => [ "type", "syslog" ]
           port => "8844"
           ssl_enable => true
-          ssl_cert => "/var/vcap/jobs/logstash/config/tls.crt"
-          ssl_key => "/var/vcap/jobs/logstash/config/tls.key"
+          ssl_cert => "/var/vcap/jobs/logstash/tls.crt"
+          ssl_key => "/var/vcap/jobs/logstash/tls.key"
           ssl_verify => false
         }
       }
