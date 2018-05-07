@@ -1,6 +1,6 @@
 <% p("logstash.pipelines", []).each do |pipeline| %>
-- pipeline.id: <%= pipeline.name %>
-  path.config: "/var/vcap/jobs/logstash/pipelines/<%= pipeline.name %>/*.conf"
+- pipeline.id: <%= pipeline["name"] %>
+  path.config: "/var/vcap/jobs/logstash/pipelines/<%= pipeline["name"] %>/*.conf"
   <% p("params", {}).each do |k,v| %><%= k %>: <%= v %>
 <% end %>
 <% end %>
