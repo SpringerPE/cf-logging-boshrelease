@@ -1,27 +1,68 @@
+#!/usr/bin/env bash
 
-#!/bin/sh
+SRC=$(pwd)/blobs
+SHELL=/bin/bash
+AWK=awk
 
-DIR=`pwd`
+read_spec() {
+    local spec="$1"
+    $AWK '/^files:/ {
+        while (getline) {
+            if ($1 == "-") {
+                if ($3 ~ /#/) {
+                    url=$3$4;
+                    sub(/#/, "", url)
+                    print $2"@"url;
+                }
+            } else {
+                next;
+            }
+        }
+    }' "$spec"
+}
 
-mkdir -p .downloads
+exec_download() {
+    local output="$1"
+    local url="$2"
+    local package=$(dirname "${output}")
+    local src=$(basename "${output}")
+    (
+        cd ${SRC}
+        if [ ! -s "${output}" ]; then
+            echo "  Downloading ${url} ..."
+            mkdir -p "${package}"
+            curl -L -s "${url}" -o "${output}"
+        fi
+    )
+}
 
-cd .downloads
+exec_prepare() {
+    local prepare="$1"
+    (
+        cd ${SRC}
+        ${SHELL} "${prepare}"
+    )
+}
 
+main() {
+    for script in $(pwd)/packages/*/spec ; do
+        local base=$(dirname "${script}")
+        local prepare="${base}/prepare"
+        if [ -s "${prepare}" ]; then
+            echo "* Procesing ${prepare} ..."
+            exec_prepare "$prepare"
+        else
+            echo "* Procesing ${script} ..."
+            for spec in $(read_spec "${script}"); do
+                local downloadfile=$(echo $spec | cut -d'@' -f 1)
+                local downloadurl=$(echo $spec | cut -d'@' -f 2)
+                exec_download "${downloadfile}" "${downloadurl}"
+            done
+        fi
+    done
+}
 
+# Run!
+mkdir -p $SRC
+main
 
-if [ ! -f ${DIR}/blobs/java/openjdk-1.8.0_162.tar.gz ];then
-    curl -L -O -J https://download.run.pivotal.io/openjdk-jdk/trusty/x86_64/openjdk-1.8.0_162.tar.gz
-    bosh add-blob --dir=${DIR} openjdk-1.8.0_162.tar.gz java/openjdk-1.8.0_162.tar.gz
-fi
-
-if [ ! -f ${DIR}/blobs/logstash/logstash-6.2.3.tar.gz ];then
-    curl -L -O -J https://artifacts.elastic.co/downloads/logstash/logstash-6.2.3.tar.gz
-    bosh add-blob --dir=${DIR} logstash-6.2.3.tar.gz logstash/logstash-6.2.3.tar.gz
-fi
-
-if [ ! -f ${DIR}/blobs/logstash/logstash-6.2.4.tar.gz ];then
-    curl -L -O -J https://artifacts.elastic.co/downloads/logstash/logstash-6.2.4.tar.gz
-    bosh add-blob --dir=${DIR} logstash-6.2.4.tar.gz logstash/logstash-6.2.4.tar.gz
-fi
-
-cd -
