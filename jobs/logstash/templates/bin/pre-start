@@ -6,7 +6,7 @@ CONFD_DIR="/var/vcap/jobs/logstash/pipelines"
 
 # Pipelines
 <% p("logstash.pipelines", []).each do |pipeline| %>
-mkdir "${CONFD_DIR}/<%= pipeline["name"] %>"
+mkdir -p "${CONFD_DIR}/<%= pipeline["name"] %>"
 cat <<'JSON' > "${CONFD_DIR}/<%= pipeline["name"] %>/config.conf"
 <%= JSON.dump(pipeline["config"]) %>
 JSON
