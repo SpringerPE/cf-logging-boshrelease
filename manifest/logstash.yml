@@ -17,14 +17,20 @@ instance_groups:
     release: logstash
     properties:
       logstash:
-        conf: ((logstash.conf))
+        conf:
+          cloud:
+            id: ((cloud.id))
+            auth: ((cloud.auth))
+        pipelines:
+        - name: test
+          config: ((test.json))
   instances: 1
   stemcell: trusty
-  azs: [z1]
-  vm_type: default
+  azs: ((azs))
+  vm_type: ((vm_type))
   persistent_disk: 1024
   networks:
-  - name: default
+  - name: ((network.name))
 
 update:
   canaries: 1
