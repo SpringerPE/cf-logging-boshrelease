@@ -26,7 +26,7 @@ properties:
     description: Definition of pipelines.yml, next to logstash.conf
     default:
     - name: dots
-      config: "input { tcp { port => 5514 } } output { stdout { codec => json_lines } }"
+      config: input { tcp { port => 5514 } } output { stdout { codec => json_lines } }
   logstash.conf:
     example: |-
       cloud.id: "cf-test:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
