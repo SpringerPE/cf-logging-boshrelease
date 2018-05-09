@@ -23,7 +23,7 @@ instance_groups:
             auth: ((cloud.auth))
         pipelines:
         - name: test
-          config: ((test.json))
+          config: ((test)).config
   instances: 1
   stemcell: trusty
   azs: ((azs))
