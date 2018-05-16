@@ -12,25 +12,20 @@ stemcells:
 
 instance_groups:
 - name: logstash
+  instances: 1
+  stemcell: trusty
+  azs: [z1]
+  vm_type: medium
+  networks:
+  - name: default
   jobs:
   - name: logstash
     release: logstash
-    properties:
-      logstash:
-        conf:
-          cloud:
-            id: ((cloud.id))
-            auth: ((cloud.auth))
-        pipelines:
-        - name: test
-          config: ((test)).config
-  instances: 1
-  stemcell: trusty
-  azs: ((azs))
-  vm_type: ((vm_type))
-  persistent_disk: 1024
-  networks:
-  - name: ((network.name))
+  properties:
+    logstash:
+      pipelines:
+      - name: test
+        config: "input { generator {} } filter { sleep { time => 1 } } output { stdout { codec => dots } }"
 
 update:
   canaries: 1

@@ -1,0 +1,21 @@
+---
+- type: replace
+  path: /instance_groups/name=logstash/networks/0/name?
+  value:
+    ((network_name))
+
+- type: replace
+  path: /instance_groups/name=logstash/azs?
+  value:
+    ((azs))
+
+- type: replace
+  path: /instance_groups/name=logstash/vm_type?
+  value:
+    ((vm_type))
+
+- type: replace
+  path: /instance_groups/name=logstash/persistent_disk?
+  value:
+    1024
+

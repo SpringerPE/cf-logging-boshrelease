@@ -1,0 +1,6 @@
+network_name: online_tools 
+
+vm_type: medium
+
+azs:
+  - Online_Prod
