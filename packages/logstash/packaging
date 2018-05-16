@@ -2,4 +2,14 @@ set -e
 
 export JAVA_HOME=/var/vcap/packages/java
 
+echo "Uncompress logstash binary ..."
 tar xzf logstash/logstash-6.2.4.tar.gz -C $BOSH_INSTALL_TARGET --strip-components 1
+
+echo "Setting up logstash configuration folders ..."
+pushd ${BOSH_INSTALL_TARGET}
+  rm -rf config data logs
+  # create the links to the configuration
+  ln -s /var/vcap/jobs/logstash/config/logstash config
+  ln -s /var/vcap/store/logstash data
+  ln -s /var/vcap/sys/log/logstash logs
+popd

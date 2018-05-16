@@ -4,17 +4,23 @@ name: logstash
 templates:
   bin/ctl: bin/ctl
   bin/post-start: bin/post-start
-  config/logstash.conf: config/logstash.conf
-  config/tls.crt: tls.crt
-  config/tls.key: tls.key
-  config/env.sh: env.sh
-  config/elasticsearch-hosts: config/elasticsearch-hosts
-  config/pipelines.yml: config/pipelines.yml
   bin/pre-start: bin/pre-start
+  config/logstash.conf: config/logstash/logstash.conf
+  config/pipelines.yml: config/logstash/pipelines.yml
+  config/log4j2.properties: config/logstash/log4j2.properties
+  config/jvm.options.erb: config/logstash/jvm.options
+  config/elasticsearch-hosts: config/elasticsearch-hosts
+  config/tls.crt: config/tls.crt
+  config/tls.key: config/tls.key
+  config/confd.sh.erb: config/confd.sh
+  data/properties.sh.erb: data/properties.sh
+  data/env.sh.erb: data/env.sh
+
 
 packages:
 - java
 - logstash
+- bosh-helpers
 
 consumes:
 - name: elasticsearch
@@ -28,29 +34,42 @@ properties:
     - name: dots
       config: input { tcp { port => 5514 } } output { stdout { codec => json_lines } }
   logstash.conf:
-    example: |-
-      cloud.id: "cf-test:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    description: A hash of logstash.conf parameters, flat keys format
+    default: {}
+    example:
+      cloud.id: "cf-test:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
       cloud.auth: "elastic:XXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    description: logstash.conf
+  logstash.modules:
+    description: Define modules and its parameters here.  Modules definitions must be defined as a list.
+    example:
+    - name: MODULE_NAME
+      var.PLUGINTYPE1.PLUGINNAME1.KEY1: VALUE
+      var.PLUGINTYPE1.PLUGINNAME1.KEY2: VALUE
+      var.PLUGINTYPE2.PLUGINNAME1.KEY1: VALUE
+      var.PLUGINTYPE3.PLUGINNAME3.KEY1: VALUE
   logstash.tls.certificate:
     description: |-
       TLS certificate that is stored in /var/vcap/jobs/logstash/config/tls.crt
-
-      You can enable tls for tcp input plugin as follows
+      You can enable tls for tcp input plugin using the predefined environment variables:
       input {
         tcp {
           add_field => [ "type", "syslog" ]
           port => "8844"
           ssl_enable => true
-          ssl_cert => "/var/vcap/jobs/logstash/tls.crt"
-          ssl_key => "/var/vcap/jobs/logstash/tls.key"
+          ssl_cert => "${TLS_CRT}"
+          ssl_key => "${TLS_KEY}"
           ssl_verify => false
         }
       }
   logstash.tls.private_key:
     description: TLS private key that is stored in /var/vcap/jobs/logstash/config/tls.key
   logstash.env:
-    description: A hash of envrioment varibales
+    description: A hash of environment varibales
+  logstash.jvm.options:
+    description: A list of JVM arguments without dash (-)
+    default:
+    - Xms1g
+    - Xmx1g
   elasticsearch.master_hosts:
     description: The list of elasticsearch master node IPs
     default: []

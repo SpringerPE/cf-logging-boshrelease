@@ -2,4 +2,8 @@ check process logstash
   with pidfile /var/vcap/sys/run/logstash/logstash.pid
   start program "/var/vcap/jobs/logstash/bin/ctl start"
   stop program "/var/vcap/jobs/logstash/bin/ctl stop"
+  if failed host 127.0.0.1 port 9600
+    send "GET /_node/stats/process?pretty HTTP/1.1\r\nUser-Agent: monit-health-check\r\nHost: localhost\r\nConnection: close\r\n\r\n\"
+    expect "HTTP/[0-9\.]{3} 200 OK\r\n"
+    for 10 cycles then restart
   group vcap

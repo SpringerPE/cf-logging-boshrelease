@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 set -e # exit immediately if a simple command exits with a non-zero status
-set -u # report the usage of uninitialized variables
 
-CONFD_DIR="/var/vcap/jobs/logstash/pipelines"
+# Load job properties
+source /var/vcap/jobs/logstash/data/properties.sh
 
-# Pipelines
-<% p("logstash.pipelines", []).each do |pipeline| %>
-mkdir -p "${CONFD_DIR}/<%= pipeline["name"] %>"
-cat <<'JSON' > "${CONFD_DIR}/<%= pipeline["name"] %>/config.conf"
-<%= pipeline["config"] %>
-JSON
+# Setup env vars and folders for the ctl script
+source /var/vcap/jobs/logstash/packages/bosh-helpers/setup.sh "logstash"
 
-<% end %>
+# Env variables
+source /var/vcap/jobs/logstash/data/env.sh
+
+# setup pipelines folder
+cd "${CONFD_DIR}"
+source /var/vcap/jobs/logstash/config/confd.sh
+

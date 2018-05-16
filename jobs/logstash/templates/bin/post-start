@@ -16,9 +16,7 @@ while [[ "$max_attempts" -ge "$attempts" ]]; do
         exit 0
     fi
     set -e
-
     attempts=$(($attempts + 1))
-
     sleep "$polling_frequency"
 done
 

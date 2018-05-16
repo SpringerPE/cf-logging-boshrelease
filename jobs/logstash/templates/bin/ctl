@@ -1,52 +1,44 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+set -e # exit immediately if a simple command exits with a non-zero status
+set -u # report the usage of uninitialized variables
 
-RUN_DIR=/var/vcap/sys/run/logstash
-LOG_DIR=/var/vcap/sys/log/logstash
-STORE_DIR=/var/vcap/store/logstash
-JOB_DIR=/var/vcap/jobs/logstash
-PIDFILE=$RUN_DIR/logstash.pid
-RUNAS=vcap
+# Load job properties
+source /var/vcap/jobs/logstash/data/properties.sh
 
-export JAVA_HOME=/var/vcap/packages/java
-export PATH=$PATH:$JAVA_HOME/bin
+# Setup env vars and folders for the ctl script
+source /var/vcap/jobs/logstash/packages/bosh-helpers/setup.sh "logstash"
 
+# Env variables
+source /var/vcap/jobs/logstash/data/env.sh
 
-function pid_exists() {
-  ps -p $1 &> /dev/null
-}
+# Load function lib (alway before setup, there are some global variables needed)
+source /var/vcap/jobs/logstash/packages/bosh-helpers/lib.sh
 
-case $1 in
-
+case ${1:-help} in
   start)
-    mkdir -p $RUN_DIR $LOG_DIR $STORE_DIR
-    chown -R $RUNAS:$RUNAS $RUN_DIR $LOG_DIR $STORE_DIR
-    mount /tmp -o remount,exec # ¯\_(ツ)_/¯
-
-    ulimit -n 65536
-
-    export ES_HOSTS=`cat $JOB_DIR/elasticsearch-hosts`
-    sed -i "s|__ES_HOSTS__|${ES_HOSTS}|g" $JOB_DIR/config/logstash.conf
-    source $JOB_DIR/env.sh
-    echo $$ > $PIDFILE
-
-    exec chpst -u $RUNAS:$RUNAS \
-       /var/vcap/packages/logstash/bin/logstash \
-      --path.config $JOB_DIR/config/ \
-      --path.data $STORE_DIR \
-      --path.logs $LOG_DIR \
-      >>$LOG_DIR/logstash.stdout.log 2>>$LOG_DIR/logstash.stderr.log
+    echon_log "Starting $COMPONENT: "
+    pid_guard $PIDFILE $COMPONENT
+    # Load python library path for dynamic libs
+    ldconf "$LD_LIBRARY_PATH"
+    (
+        {
+            export LS_SETTINGS_DIR=/var/vcap/jobs/logstash/config/logstash
+            exec chpst -v -u vcap:vcap logstash --config.debug --path.data=/var/vcap/store/logstash/
+        } >>$LOG_DIR/$COMPONENT.stdout.log \
+        2>>$LOG_DIR/$COMPONENT.stderr.log
+    ) &
+    echo $! > $PIDFILE
+    echo "$(<${PIDFILE}). Done"
     ;;
-
   stop)
-    PID=$(head -1 $PIDFILE)
-    if [ ! -z $PID ] && pid_exists $PID; then
-      kill $PID
-    fi
-    while [ -e /proc/$PID ]; do sleep 0.1; done
+    echo_log "Stopping $COMPONENT: $(<${PIDFILE}). "
+    kill_and_wait $PIDFILE
     rm -f $PIDFILE
+    echo_log "Done"
     ;;
-
   *)
-  echo "Usage: ctl {start|stop|console}" ;;
+    echo "Usage: $0 {start|stop}"
+    ;;
 esac
 exit 0
