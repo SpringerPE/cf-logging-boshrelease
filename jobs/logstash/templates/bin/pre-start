@@ -12,5 +12,6 @@ source /var/vcap/jobs/logstash/data/env.sh
 
 # setup pipelines folder
 cd "${CONFD_DIR}"
+rm -rf *
 source /var/vcap/jobs/logstash/config/confd.sh
 
