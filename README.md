@@ -17,3 +17,10 @@ bosh create-release --name=logstash --version=1 --tarball=/tmp/logstash-boshrele
 bosh upload-release
 ```
 
+
+To interpolate a final manifest with a cloud-id and a test pipeline.
+
+
+```
+bosh-cli int logstash.yml -o add-cloud-id.yml -o pipelines/add-test.yml -o add-settings.yml  --var-file test=pipelines/test.conf --vars-file secrets.yml --vars-file settings.yml
+```
