@@ -9,9 +9,21 @@ set -e # exit immediately if a simple command exits with a non-zero status
 
 # Pipelines
 <% p("logstash.pipelines", []).each do |pipeline| %>
+# Delete all configuration and recreate it
+rm -rf "<%= pipeline["name"] %>"
 mkdir -p "<%= pipeline["name"] %>"
-cat <<PIPELINECFG > "<%= pipeline["name"] %>/config.conf"
-<%= pipeline["config"] %>
+# Add all configs
+  <% pipeline["config"].each do |key, content| %>
+    <% if nil != content && content != '' %>
+      <% if content.start_with? '/var/vcap' %>
+# Link to another job/package
+ln -sf "<%= content %>"
+      <% else %>
+cat <<'PIPELINECFG' > '<%= pipeline["name"] %>/<%= key %>.conf'
+<%= content %>
 PIPELINECFG
-
+      <% end %>
+    <% end %>
+  <% end %>
 <% end %>
+

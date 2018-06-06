@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -e
+
+# Load job properties
+source /var/vcap/jobs/es_config/data/properties.sh
+
+# Setup env vars and folders for the ctl script
+source /var/vcap/jobs/es_config/packages/bosh-helpers/setup.sh "es_config"
+
+case $1 in
+  start)
+    # pretend we're still running to keep monit happy
+    echo 1 > "${PIDFILE}"
+    ;;
+  stop)
+    sleep 1
+    rm -f "${PIDFILE}"
+    ;;
+  *)
+    echo "Usage: control {start|stop}" >&2
+    exit 1
+    ;;
+esac
+

@@ -1,0 +1,76 @@
+<%
+# This file contains mappings applied to all logs indicies (both 'app*' and 'platform*').
+# By default all string fields are set as `not_analyzed`. Field `@message` is set as a full-text field.
+# Compatible with ES 6
+
+require 'json'
+
+string_default = {
+  "type": "keyword",
+  "index": false
+}.to_json
+
+full_text_with_raw_copy = {
+  "type": "text",
+  "index": true,
+  "norms": {
+    "enabled": false
+   },
+  "fields": {
+    "raw": {
+      "type": "keyword",
+      "index": false,
+      "ignore_above": 256
+    }
+  }
+}.to_json
+
+%>
+{
+  "template" : "<%= p('es_config.template_index') %>",
+  "order": 202,  
+  "mappings" : {
+    <%# --------------  Default type (applied to all types) %>
+    "_default_" : {
+      "properties" : {
+         <%# ------  common fields %>
+         "tags":        <%= string_default %>,
+         "@input":      <%= string_default %>,
+         "@index_type": <%= string_default %>,
+         "@type":       <%= string_default %>,
+         "@timestamp": {
+           "type": "date"
+         },
+         "@message":    <%= full_text_with_raw_copy %>,
+         "@level":      <%= string_default %>,
+         "@shipper": {
+           "type": "object",
+           "dynamic": true,
+           "properties": {
+             "name":     <%= string_default %>,
+             "priority": {
+               "type": "long"
+             }
+           }
+         },
+         "@source": {
+           "type": "object",
+           "dynamic": true,
+           "properties": {
+             "deployment": <%= string_default %>,
+             "host":       <%= string_default %>,
+             "job":        <%= string_default %>,
+             "job_index":  <%= string_default %>,
+             "index": {
+               "type": "long"
+             },
+             "component":  <%= string_default %>,
+             "type":       <%= string_default %>,
+             "vm":         <%= string_default %>
+           }
+         }
+      }
+    }
+  }
+}
+

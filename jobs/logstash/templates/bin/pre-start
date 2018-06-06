@@ -10,8 +10,20 @@ source /var/vcap/jobs/logstash/packages/bosh-helpers/setup.sh "logstash"
 # Env variables
 source /var/vcap/jobs/logstash/data/env.sh
 
+# Load function lib (alway before setup, there are some global variables needed)
+source /var/vcap/jobs/logstash/packages/bosh-helpers/lib.sh
+
 # setup pipelines folder
+export CONFD_DIR="${JOB_DIR}/config/conf.d"
+rm -rf "${CONFD_DIR}"
+mkdir -p "$CONFD_DIR" && chmod 775 "$CONFD_DIR" && chown vcap.vcap "$CONFD_DIR"
 cd "${CONFD_DIR}"
-rm -rf *
 source /var/vcap/jobs/logstash/config/confd.sh
+
+# Install plugins
+<% p("logstash.plugins").each do |plugin| %>
+logstash-plugin install \
+  <%= plugin.except("name").map { |key, value| "--#{key}=#{value}" }.join(" ") %> \
+  <%= plugin["name"] %>
+<% end %>
 

@@ -1,0 +1,73 @@
+---
+name: es_config
+
+packages:
+- bosh-helpers
+
+templates:
+  bin/ctl: bin/ctl
+  bin/pre-start.erb: bin/pre-start
+  bin/run: bin/run
+  bin/lib.sh: bin/lib.sh
+  config/index-templates/shards-and-replicas.json.erb: config/index-templates/shards-and-replicas.json
+  config/index-templates/index-settings.json.erb: config/index-templates/index-settings.json
+  config/index-templates/index-mappings.json.erb: config/index-templates/index-mappings.json
+  config/index-templates/index-mappings-cf.json.erb: config/index-templates/index-mappings-cf.json
+  config/index-templates/index-mappings-cf_apps.json.erb: config/index-templates/index-mappings-cf_apps.json
+  config/index-templates/index-mappings-cf_platform.json.erb: config/index-templates/index-mappings-cf_platform.json
+  data/properties.sh.erb: data/properties.sh
+
+consumes:
+- name: elasticsearch
+  type: elasticsearch
+  optional: true
+
+properties:
+  es_config.service:
+    description: Define this job as monit process or as an errand process.
+    default: true
+  es_config.template_index:
+    description: |
+      Template prefix of log indices that can uniquely distinguish them among other ES indices. 
+      It is used in the index templates predefined in the job to specify index pattern.
+      Make sure the prefix matches the index property set for your parser.
+    default: "logs-*"
+  es_config.template_index_cf_apps:
+    description: Name prefix of your `app` log indices.
+    default: "logs-app-*"
+  es_config.template_index_cf_platform:
+    description: Name prefix of your `platform` log indices.
+    default: "logs-platform-*"
+
+  es_config.settings.shards:
+    description: Number of shards to apply to the index template pattern.
+    default: 5
+  es_config.settings.replicas:
+    description: Number of replicas to apply to the index template pattern.
+    default: 1
+
+  elasticsearch_config.elasticsearch.host:
+    description: "The elasticsearch master node hostname"
+  elasticsearch_config.elasticsearch.port:
+    description: "Elasticsearch master node port"
+    default: 9200
+  elasticsearch_config.elasticsearch.proto:
+    description: "Elasticsearch communication protocol, http by default"
+    default: http
+
+  elasticsearch_config.elasticsearch.endpoint:
+    description: "Main Elasticsearch HTTP endpoint. Takes priority over the previous settings."
+    example: "https://xxxxxxxxxxxxxxxxxxx.europe-west1.gcp.cloud.es.io:9243"
+  elasticsearch_config.elasticsearch.user:
+    description: "Elasticsearch HTTP auth user"
+  elasticsearch_config.elasticsearch.password:
+    description: "Elasticsearch HTTP auth password"
+  elasticsearch_config.elasticsearch.auth:
+    description: "Elasticsearch user:password string"
+
+  es_config.templates:
+    description: "An array with key-value hashes; keys being template name, value being template content"
+    default: []
+  es_config.license:
+    description: "The ElasticSearch License string"
+

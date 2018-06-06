@@ -15,25 +15,29 @@ function ldconf {
   rm -f $TMP_DIR/ld.so.conf
 }
 
+function get_logfile {
+  echo "/var/vcap/sys/log/${NAME}/${COMPONENT:-$NAME}_script.log"
+}
+
 # Log some info to the Monit Log file
 function log {
   local message=${1}
   local timestamp=`date +%y:%m:%d-%H:%M:%S`
-  echo "${timestamp} :: ${message}" >> "/var/vcap/sys/log/${NAME}/${COMPONENT:-$NAME}_script.log"
+  echo "${timestamp} :: ${message}" >> "$(get_logfile)"
 }
 
 # Print a message
 function echo_log {
   local message=${1}
   local timestamp=`date +%y:%m:%d-%H:%M:%S`
-  echo "${timestamp} :: ${message}" | tee -a "/var/vcap/sys/log/${NAME}/${COMPONENT:-$NAME}_script.log"
+  echo "${timestamp} :: ${message}" | tee -a "$(get_logfile)"
 }
 
 # Print a message without \n at the end
 function echon_log {
   local message=${1}
   local timestamp=`date +%y:%m:%d-%H:%M:%S`
-  echo -n "${timestamp} :: ${message}" | tee -a "/var/vcap/sys/log/${NAME}/${COMPONENT:-$NAME}_script.log"
+  echo -n "${timestamp} :: ${message}" | tee -a "$(get_logfile)"
 }
 
 # Print a message and exit with error

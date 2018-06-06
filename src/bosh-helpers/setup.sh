@@ -66,8 +66,5 @@ export TMPDIR="$TMP_DIR"
 export STORE_DIR="/var/vcap/store/$NAME"
 mkdir -p "$STORE_DIR" && chmod 775 "$STORE_DIR" && chown vcap.vcap "$STORE_DIR"
 
-export CONFD_DIR="${JOB_DIR}/config/conf.d"
-mkdir -p "$CONFD_DIR" && chmod 775 "$CONFD_DIR" && chown vcap.vcap "$CONFD_DIR"
-
 export LANG=POSIX
 

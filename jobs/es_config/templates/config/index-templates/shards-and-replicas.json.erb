@@ -1,0 +1,8 @@
+{
+  "template": "<%= p('es_config.template_index') %>",
+  "order": 100,
+  "settings": { 
+    "number_of_shards": <%= p('es_config.settings.shards', 5) %>,
+    "number_of_replicas" : <%= p('es_config.settings.replicas', 1) %>
+  }
+}

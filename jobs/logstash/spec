@@ -1,6 +1,10 @@
 ---
 name: logstash
 
+
+description: Logstash job able to define pipelines, environment varialbes and work with Elastic.co
+
+
 templates:
   bin/ctl: bin/ctl
   bin/post-start: bin/post-start
@@ -28,11 +32,17 @@ consumes:
   optional: true
 
 properties:
+  logstash.plugins:
+    description: "Array of hashes describing logstash plugins to install"
+    default: []
+    example:
+    - {name: logstash-output-cloudwatchlogs, version: 2.0.0}
   logstash.pipelines:
-    description: Definition of pipelines.yml, next to logstash.conf
+    description: Definition of pipelines.yml, next to logstash.conf. 
     default:
     - name: dots
-      config: input { tcp { port => 5514 } } output { stdout { codec => json_lines } }
+      config:
+      - all: input { tcp { port => 5514 } } output { stdout { codec => json_lines } }
   logstash.conf:
     description: A hash of logstash.conf parameters, flat keys format
     default: {}
@@ -49,8 +59,8 @@ properties:
       var.PLUGINTYPE3.PLUGINNAME3.KEY1: VALUE
   logstash.tls.certificate:
     description: |-
-      TLS certificate that is stored in /var/vcap/jobs/logstash/config/tls.crt
-      You can enable tls for tcp input plugin using the predefined environment variables:
+      TLS certificate are stored in TLS_CRT and TLS_KEY environment variables
+      You can enable tls for tcp input plugin by using:
       input {
         tcp {
           add_field => [ "type", "syslog" ]
@@ -65,11 +75,14 @@ properties:
     description: TLS private key that is stored in /var/vcap/jobs/logstash/config/tls.key
   logstash.env:
     description: A hash of environment varibales
+  logstash.jvm.heap_size:
+    description: Sets JVM heap size. If not defined it is automatically calculated.
+  logstash.jvm.heap_size_pct:
+    description: Percentage of MemTotal to be assigned to JVM Hep if heap_size is not provided and it is calculated automatically.
+    default: 50
   logstash.jvm.options:
     description: A list of JVM arguments without dash (-)
-    default:
-    - Xms1g
-    - Xmx1g
+    default: []
   elasticsearch.master_hosts:
     description: The list of elasticsearch master node IPs
     default: []
