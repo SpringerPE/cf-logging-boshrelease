@@ -3,9 +3,8 @@
 ```
 ./add-blobs.sh
 
-bosh create-release --name=logstash --force --timestamp-version --tarball=/tmp/logstash-boshrelease.tgz
+bosh create-release --name=cf-logging --force --timestamp-version --tarball=/tmp/cf-logging-boshrelease.tgz
 bosh upload-release
-bosh -n -d logstash deploy manifest/logstash.yml --var-file logstash.conf=manifest/logstash.conf --no-redact
 ```
 
 
@@ -14,7 +13,6 @@ To create a final release:
 
 ```
 bosh create-release --name=logstash --version=1 --tarball=/tmp/logstash-boshrelease.tgz
-bosh upload-release
 ```
 
 
@@ -22,5 +20,10 @@ To interpolate a final manifest with a cloud-id and a test pipeline.
 
 
 ```
-bosh-cli int logstash.yml -o add-cloud-id.yml -o pipelines/add-test.yml -o add-settings.yml  --var-file test=pipelines/test.conf --vars-file secrets.yml --vars-file settings.yml
+bosh int manifests/logstash.yml -o manifests/add-cloud-id.yml -o manifests/pipelines/add-test.yml -o manifests/add-settings.yml  --var-file pipeline=manifests/pipelines/test.conf --vars-file manifests/secrets.yml --vars-file manifests/settings.yml
+```
+
+
+```
+bosh int manifests/logstash.yml -o manifests/add-cloud-id.yml -o manifests/pipelines/add-logstash.yml -o manifests/add-settings.yml  --var-file pipeline=manifests/pipelines/logstash.conf --vars-file manifests/secrets.yml --vars-file manifests/settings.yml
 ```

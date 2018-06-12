@@ -1,7 +1,10 @@
 ---
+# bosh -d logstash deploy manifest/logstash.yml -o manifest/pipelines/add-test.yml  --var-file pipeline=manifest/pipelines/test.json --vars-file manifest/secrets.yml
+
 - type: replace
   path: /instance_groups/name=logstash/properties/logstash/pipelines?
   value:
     - name: test
-      config: ((test))
+      config:
+        all: ((pipeline))
 
