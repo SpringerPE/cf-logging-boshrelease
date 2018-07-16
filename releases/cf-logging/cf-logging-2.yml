@@ -1,0 +1,45 @@
+name: cf-logging
+version: "2"
+commit_hash: 9d5b6ae
+uncommitted_changes: true
+jobs:
+- name: es_config
+  version: f1ed3be2266f88effe9a41da46ee44579a07e634
+  fingerprint: f1ed3be2266f88effe9a41da46ee44579a07e634
+  sha1: d909db9a43427b0b3a4b57edd77502e28ad0d2f6
+- name: logstash
+  version: 2c23b4192b338232dcbf0bc27c6927c57fcf71a4
+  fingerprint: 2c23b4192b338232dcbf0bc27c6927c57fcf71a4
+  sha1: 091bfb6d9a0ae2e52c8cb041d8cb4c27f7ad90b6
+- name: logstash_exporter
+  version: cfa4d0d8f0064bb4198fcac1240d4c941760515b
+  fingerprint: cfa4d0d8f0064bb4198fcac1240d4c941760515b
+  sha1: eec359be82f19693d9c6fc0b91f4171b166e9cc2
+packages:
+- name: bosh-helpers
+  version: cab3f7d1012fb8d71910fd9b84be7a222ae4bbc3
+  fingerprint: cab3f7d1012fb8d71910fd9b84be7a222ae4bbc3
+  sha1: 8761f0a8793041bc2a7433e7b4303cf37c9b4168
+  dependencies: []
+- name: golang
+  version: 4fa7547ed1ef1acd087e80188f9c800415a796ea
+  fingerprint: 4fa7547ed1ef1acd087e80188f9c800415a796ea
+  sha1: 283ee5da53112d74551e23abefeb11ff7d815337
+  dependencies: []
+- name: logstash
+  version: 90d7ccc06210853123556d7e79c536ede6223647
+  fingerprint: 90d7ccc06210853123556d7e79c536ede6223647
+  sha1: 757ad7d78784f533d8419d9e69b206f2db03972b
+  dependencies:
+  - openjdk-1.8
+- name: logstash_exporter
+  version: 61fcc5e34ec20c13eb83ce58e5885ca0d484bcd9
+  fingerprint: 61fcc5e34ec20c13eb83ce58e5885ca0d484bcd9
+  sha1: b6d9b7fcf139e7d8a724a489783dbc72c47be937
+  dependencies:
+  - golang
+- name: openjdk-1.8
+  version: 90f14902b17e66843bb1a347c69099c6d88dc2f1
+  fingerprint: 90f14902b17e66843bb1a347c69099c6d88dc2f1
+  sha1: a536a94f60ca51a542eef2f62fd04422e3c702ad
+  dependencies: []
