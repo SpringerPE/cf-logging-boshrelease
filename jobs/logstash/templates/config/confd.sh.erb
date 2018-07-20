@@ -7,6 +7,44 @@ set -e # exit immediately if a simple command exits with a non-zero status
 # Also all environment variables will be resolved. If you want to force them
 # to be resolved by logstash, please scape them.
 
+
+# Main config. We do it like this to allow the interpolation of the env variables
+cat <<LOGSTASHCFG > /var/vcap/jobs/logstash/config/logstash/logstash.conf
+# Settings file in YAML
+#
+# Settings are specified as flat keys.
+#
+# Node id. It takes jobname and index instead of the random name of the instance
+node.name: "${JOB_FULL_AZ_DEPLOYMENT}"
+
+# Which directory should be used by logstash and its plugins
+# for any persistent needs. Defaults to LOGSTASH_HOME/data
+path.data: /var/vcap/store/logstash
+
+# Directory with logstash.conf and pipelines.yml files
+path.config: /var/vcap/jobs/logstash/config/logstash
+
+# Log settings
+path.logs: /var/vcap/sys/log/logstash
+
+# ------------ Manifest settings --------------
+<% p("logstash.conf", {}).each do | k, v | %>
+<%= k %>: "<%= v %>"
+<% end %>
+
+# ------------ Modules ------------------------
+<% if_p("logstash.modules") do |modules| %>
+modules:
+<% modules.each do |m| %>
+- <% m.each do | k, v | %><%= k %>: "<%= v %>"
+<% end %>
+
+<% end %>
+<% end %>
+LOGSTASHCFG
+
+################################################################################
+
 # Pipelines
 <% p("logstash.pipelines", []).each do |pipeline| %>
 # Delete all configuration and recreate it

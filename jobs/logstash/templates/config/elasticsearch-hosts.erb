@@ -4,4 +4,4 @@
   unless master_hosts
     master_hosts = p("elasticsearch.master_hosts")
   end
-%><%= master_hosts %>
+%><%= master_hosts.join(', ') %>

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# abort script on any command that exits with a non zero value
+set -e -x
+
+# Grab the latest versions that are in the directory
+JAVA_VERSION=$(ls -r openjdk-1.8/openjdk-*.tar.gz | sed 's/.*\/openjdk-\(.*\)\.tar\.gz$/\1/' | head -1)
+BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
+
+echo "Uncompress Java OpenJDK binary ..."
+tar xzf openjdk-1.8/openjdk-${JAVA_VERSION}.tar.gz -C $BOSH_INSTALL_TARGET --strip-components 1
+
+echo "Deleting unneeded Java folders ..."
+pushd ${BOSH_INSTALL_TARGET}
+  rm -rf java
+  rm -rf demo
+  rm -rf sample
+  rm -rf man
+  rm -rf src.zip
+popd

@@ -1,11 +1,20 @@
-set -e
+#!/usr/bin/env bash
+
+# abort script on any command that exits with a non zero value
+set -e -x
+
+# Grab the latest versions that are in the directory
+LOGSTASH_VERSION=$(ls -r logstash/logstash-*.tar.gz | sed 's/.*\/logstash-\(.*\)\.tar\.gz$/\1/' | head -1)
+BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 
 export JAVA_HOME=/var/vcap/packages/java
 
 echo "Uncompress logstash binary ..."
-tar xzf logstash/logstash-6.2.4.tar.gz -C $BOSH_INSTALL_TARGET --strip-components 1
+tar xzf logstash/logstash-${LOGSTASH_VERSION}.tar.gz -C $BOSH_INSTALL_TARGET --strip-components 1
+
 
 echo "Setting up logstash configuration folders ..."
+# Hacks
 pushd ${BOSH_INSTALL_TARGET}
   rm -rf config data logs
   # create the links to the configuration
@@ -13,3 +22,4 @@ pushd ${BOSH_INSTALL_TARGET}
   ln -s /var/vcap/store/logstash data
   ln -s /var/vcap/sys/log/logstash logs
 popd
+

@@ -2,7 +2,7 @@
 name: logstash
 
 dependencies:
-- java
+- openjdk-1.8
 
 files:
-- logstash/logstash-6.2.4.tar.gz    # https://artifacts.elastic.co/downloads/logstash/logstash-6.2.4.tar.gz
+- logstash/logstash-6.3.1.tar.gz    # https://artifacts.elastic.co/downloads/logstash/logstash-6.3.1.tar.gz

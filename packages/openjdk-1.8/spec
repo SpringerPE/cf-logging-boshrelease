@@ -1,0 +1,8 @@
+---
+name: openjdk-1.8
+
+dependencies: []
+
+files:
+- openjdk-1.8/openjdk-1.8.0_172.tar.gz   # https://download.run.pivotal.io/openjdk-jdk/trusty/x86_64/openjdk-1.8.0_172.tar.gz  (s3cmd ls s3://download.pivotal.io/openjdk-jdk/trusty/x86_64/)
+

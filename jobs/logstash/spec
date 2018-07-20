@@ -1,28 +1,24 @@
 ---
 name: logstash
 
-
-description: Logstash job able to define pipelines, environment varialbes and work with Elastic.co
-
+description: Logstash job able to define multiple pipelines, templates, environment variables and work with Elastic.co
 
 templates:
   bin/ctl: bin/ctl
-  bin/post-start: bin/post-start
   bin/pre-start: bin/pre-start
-  config/logstash.conf: config/logstash/logstash.conf
-  config/pipelines.yml: config/logstash/pipelines.yml
+  config/confd.sh.erb: config/confd.sh
+  config/pipelines.yml.erb: config/logstash/pipelines.yml
   config/log4j2.properties: config/logstash/log4j2.properties
   config/jvm.options.erb: config/logstash/jvm.options
-  config/elasticsearch-hosts: config/elasticsearch-hosts
-  config/tls.crt: config/tls.crt
-  config/tls.key: config/tls.key
-  config/confd.sh.erb: config/confd.sh
+  config/elasticsearch-hosts.erb: config/elasticsearch-hosts
+  config/tls.crt.erb: config/tls.crt
+  config/tls.key.erb: config/tls.key
+  config/template.json.erb: config/template.json
   data/properties.sh.erb: data/properties.sh
   data/env.sh.erb: data/env.sh
 
-
 packages:
-- java
+- openjdk-1.8
 - logstash
 - bosh-helpers
 
@@ -33,13 +29,19 @@ consumes:
 
 properties:
   logstash.plugins:
-    description: "Array of hashes describing logstash plugins to install"
+    description: Array of hashes describing logstash plugins to install
     default: []
     example:
     - {name: logstash-output-cloudwatchlogs, version: 2.0.0}
   logstash.pipelines:
-    description: Definition of pipelines.yml, next to logstash.conf. 
-    default:
+    description: |
+      Definition of pipelines.yml. You can define as many pipelines as you need,
+      with the configuration splited as many times as you need. Each entry
+      within "config" key will be a file. Note you can use the environment
+      variables defined in "logstash.env" together with other env variables
+      like: TLS_KEY, TLS_CRT, TEMPLATE_PATH, DST_HOSTS (from 
+      "elasticsearch.master_hosts") ...
+    test:
     - name: dots
       config:
       - all: input { tcp { port => 5514 } } output { stdout { codec => json_lines } }
@@ -50,7 +52,7 @@ properties:
       cloud.id: "cf-test:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
       cloud.auth: "elastic:XXXXXXXXXXXXXXXXXXXXXXXXXXX"
   logstash.modules:
-    description: Define modules and its parameters here.  Modules definitions must be defined as a list.
+    description: Define a list of modules and its parameters here
     example:
     - name: MODULE_NAME
       var.PLUGINTYPE1.PLUGINNAME1.KEY1: VALUE
@@ -58,8 +60,8 @@ properties:
       var.PLUGINTYPE2.PLUGINNAME1.KEY1: VALUE
       var.PLUGINTYPE3.PLUGINNAME3.KEY1: VALUE
   logstash.tls.certificate:
-    description: |-
-      TLS certificate are stored in TLS_CRT and TLS_KEY environment variables
+    description: |
+      TLS certificate is stored in "${TLS_CRT}" environment variable.
       You can enable tls for tcp input plugin by using:
       input {
         tcp {
@@ -72,17 +74,29 @@ properties:
         }
       }
   logstash.tls.private_key:
-    description: TLS private key that is stored in /var/vcap/jobs/logstash/config/tls.key
+    description: |
+      TLS key is stored in "${TLS_KEY}" environment variables. See
+      "logstash.tls.certificate" to see how to use it.
   logstash.env:
     description: A hash of environment varibales
   logstash.jvm.heap_size:
     description: Sets JVM heap size. If not defined it is automatically calculated.
   logstash.jvm.heap_size_pct:
-    description: Percentage of MemTotal to be assigned to JVM Hep if heap_size is not provided and it is calculated automatically.
+    description: |
+      Percentage of MemTotal to be assigned to JVM Heap if heap_size is not provided 
+      and it is calculated automatically.
     default: 50
   logstash.jvm.options:
     description: A list of JVM arguments without dash (-)
     default: []
+  logstash.template:
+    description: |
+      ES Template to apply to ES. You also will need to define "manage_template: true" and
+      "template_name" in the output config of your pipeline. The path of the template will
+      be in the variable "${TEMPLATE_PATH}"
+
   elasticsearch.master_hosts:
-    description: The list of elasticsearch master node IPs
+    description: |
+      The list of elasticsearch master node IPs. They will be defined
+      as "${DST_HOSTS}" environment variable.
     default: []
