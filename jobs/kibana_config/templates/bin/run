@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# Every thing is done in the pre-start script
+exit 0

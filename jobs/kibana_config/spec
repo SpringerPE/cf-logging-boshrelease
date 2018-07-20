@@ -1,0 +1,101 @@
+---
+name: kibana_config
+
+description: This job uploads Kibana saved objects (index-patterns, searches, visualizations and dashboards). Allows to upload defaults predefined in the job and custom data files.
+
+packages:
+- ruby-2.3
+- bosh-helpers
+
+consumes:
+- name: elasticsearch
+  type: elasticsearch
+  optional: true
+
+templates:
+  bin/run: bin/run
+  bin/upload-kibana-objects.rb.erb: bin/upload-kibana-objects.rb
+  bin/pre-start: bin/pre-start
+
+  config/index-pattern/logs-platform.json.erb:  config/index-pattern/logs-platform.json
+
+  config/config/4.5.4.json.erb:  config/config/4.5.4.json
+
+  config/search/platform-all.json.erb:                    config/search/platform-all.json
+  config/search/platform-all-errors.json.erb:             config/search/platform-all-errors.json
+  config/search/platform-all-overview.json.erb:           config/search/platform-all-overview.json
+  config/search/platform-haproxy.json.erb:                config/search/platform-haproxy.json
+  config/search/platform-haproxy-long-response.json.erb:  config/search/platform-haproxy-long-response.json
+  config/search/platform-uaa-audit.json.erb:              config/search/platform-uaa-audit.json
+
+  config/dashboard/Platform-Errors.json.erb:     config/dashboard/Platform-Errors.json
+  config/dashboard/Platform-Haproxy.json.erb:    config/dashboard/Platform-Haproxy.json
+  config/dashboard/Platform-Logs.json.erb:       config/dashboard/Platform-Logs.json
+  config/dashboard/Platform-Overview.json.erb:   config/dashboard/Platform-Overview.json
+  config/dashboard/Platform-UAA-Audit.json.erb:  config/dashboard/Platform-UAA-Audit.json
+
+  config/visualization/Platform-components.json.erb: config/visualization/Platform-components.json
+  config/visualization/Platform-components-with-errors.json.erb: config/visualization/Platform-components-with-errors.json
+  config/visualization/Platform-errors-count-by-source-component-(top-5).json.erb: config/visualization/Platform-errors-count-by-source-component-(top-5).json
+  config/visualization/Platform-errors-count-in-timeline.json.erb: config/visualization/Platform-errors-count-in-timeline.json
+  config/visualization/Platform-Haproxy-requests-(top-10).json.erb: config/visualization/Platform-Haproxy-requests-(top-10).json
+  config/visualization/Platform-Haproxy-request-status-codes-in-timeline.json.erb: config/visualization/Platform-Haproxy-request-status-codes-in-timeline.json
+  config/visualization/Platform-Haproxy-request-time-duration-(50th-95th-99th-top-5).json.erb: config/visualization/Platform-Haproxy-request-time-duration-(50th-95th-99th-top-5).json
+  config/visualization/Platform-Haproxy-request-time-duration.json.erb: config/visualization/Platform-Haproxy-request-time-duration.json
+  config/visualization/Platform-links.json.erb: config/visualization/Platform-links.json
+  config/visualization/Platform-logs-by-component-(top-5).json.erb: config/visualization/Platform-logs-by-component-(top-5).json
+  config/visualization/Platform-logs-by-source-job-(top-5).json.erb: config/visualization/Platform-logs-by-source-job-(top-5).json
+  config/visualization/Platform-logs-count-(top-10-components).json.erb: config/visualization/Platform-logs-count-(top-10-components).json
+  config/visualization/Platform-logs-count-by-level.json.erb: config/visualization/Platform-logs-count-by-level.json
+  config/visualization/Platform-logs-count-in-timeline.json.erb: config/visualization/Platform-logs-count-in-timeline.json
+  config/visualization/Platform-UAA-Audit-event-locations.json.erb: config/visualization/Platform-UAA-Audit-event-locations.json
+  config/visualization/Platform-UAA-Audit-events-by-type.json.erb: config/visualization/Platform-UAA-Audit-events-by-type.json
+  config/visualization/Platform-UAA-Audit-event-types.json.erb: config/visualization/Platform-UAA-Audit-event-types.json
+
+properties:
+  kibana_config.upload_patterns:
+    description: "List of glob patterns of Kibana objects to upload"
+    default:
+    - {type: index-pattern, pattern: /var/vcap/jobs/kibana_config/config/index-pattern/*.json}
+    - {type: config, pattern: /var/vcap/jobs/kibana_config/config/config/*.json}
+    - {type: search, pattern: /var/vcap/jobs/kibana_config/config/search/*.json}
+    - {type: visualization, pattern: /var/vcap/jobs/kibana_config/config/visualization/*.json}
+    - {type: dashboard, pattern: /var/vcap/jobs/kibana_config/config/dashboard/*.json}
+  kibana_config.upload_data_files:
+    description: "List of text files to put in API endpoint /_bulk"
+    default: []
+
+  elasticsearch_config.elasticsearch.host:
+    description: "The elasticsearch master node hostname"
+  elasticsearch_config.elasticsearch.port:
+    description: "Elasticsearch master node port"
+    default: 9200
+  elasticsearch_config.elasticsearch.proto:
+    description: "Elasticsearch communication protocol, http by default"
+    default: http
+  elasticsearch_config.elasticsearch.endpoint:
+    description: "Main Elasticsearch HTTP endpoint. Takes priority over the previous settings."
+    example: "https://xxxxxxxxxxxxxxxxxxx.europe-west1.gcp.cloud.es.io:9243"
+  elasticsearch_config.elasticsearch.user:
+    description: "Elasticsearch HTTP auth user"
+  elasticsearch_config.elasticsearch.password:
+    description: "Elasticsearch HTTP auth password"
+  elasticsearch_config.elasticsearch.auth:
+    description: "Elasticsearch user:password string"
+
+  cf_logging.firehose_events:
+    description: "Array of events you would like to get. Valid options are CounterEvent,Error,HttpStartStop,LogMessage,ValueMetric,ContainerMetric"
+    default: ["LogMessage"]
+  cf_logging.template_index:
+    description: |
+      Template prefix of log indices that can uniquely distinguish them among other ES indices. 
+      It is used in the index templates predefined in the job to specify index pattern.
+      Make sure the prefix matches the index property set for your parser.
+    default: "logs-cf-*"
+  cf_logging.template_index_cf_apps:
+    description: Name prefix of your `app` log indices.
+    default: "logs-cf-app-*"
+  cf_logging.template_index_cf_platform:
+    description: Name prefix of your `platform` log indices.
+    default: "logs-cf-platform-*"
+

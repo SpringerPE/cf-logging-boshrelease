@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+
+# Load job properties
+source /var/vcap/jobs/kibana_config/data/properties.sh
+
+# Setup env vars and folders for the ctl script
+source /var/vcap/jobs/kibana_config/packages/bosh-helpers/setup.sh "kibana_config"
+
+$JOB_DIR/bin/upload-kibana-objects.rb
