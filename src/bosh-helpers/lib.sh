@@ -16,7 +16,7 @@ function ldconf {
 }
 
 function get_logfile {
-  echo "/var/vcap/sys/log/${NAME}/${COMPONENT:-$NAME}_script.log"
+  echo "/var/vcap/sys/log/${NAME}/${COMPONENT:-$NAME}_ctl.log"
 }
 
 # Log some info to the Monit Log file
