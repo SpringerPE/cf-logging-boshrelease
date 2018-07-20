@@ -7,6 +7,7 @@ to easily manage logging in Cloudfoundry deployments.
 * Not linked to ES
 * Logstash 6.x and up (no legacy versions)
 * Easy to manage and define logstash configuration files
+* Includes Prometheus logstash exporter: https://github.com/BonnierNews/logstash_exporter
 
 
 ## Why?
@@ -24,6 +25,15 @@ by Google, etc.)
 
 First of all, when do a git commit, try to use good commit messages; the release
 changes on each release will be taken from the commit messages!
+
+
+Second, if first time, probably you will need to initialize the upstream git submodules
+(for Prometheus logstash_exporter: https://github.com/BonnierNews/logstash_exporter):
+
+```
+git submodule init
+git submodule update
+```
 
 When you make changes in the packages (or add new ones), please use
 `./update-blobs.sh` to sync and upload the new blobs. This script reads the `spec` file 
