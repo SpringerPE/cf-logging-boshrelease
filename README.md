@@ -212,9 +212,9 @@ bosh int manifests/logstash.yml -o manifests/add-cloud-id.yml -o manifests/pipel
 
 # Author
 
-SpringerNature Platform Engineering, José Riguera López (jose.riguera@springer.com)
+Originally based on: https://github.com/making/logstash-boshrelease
 
-Copyright 2018 Springer Nature
+A lot of things changed by SpringerNature Platform Engineering, José Riguera López (jose.riguera@springer.com)
 
 
 # License
