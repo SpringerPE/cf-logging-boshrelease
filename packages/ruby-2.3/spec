@@ -1,0 +1,8 @@
+---
+name: ruby-2.3
+
+files:
+- ruby-2.3/ruby-2.3.7.tar.gz      # https://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.7.tar.gz
+- ruby-2.3/rubygems-2.7.7.tgz     # https://rubygems.org/rubygems/rubygems-2.7.7.tgz
+- ruby-2.3/bundler-1.16.3.gem     # https://rubygems.org/downloads/bundler-1.16.3.gem
+- ruby-2.3/rake-12.3.1.gem        # https://rubygems.org/downloads/rake-12.3.1.gem

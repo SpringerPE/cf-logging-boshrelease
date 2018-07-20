@@ -1,8 +1,0 @@
-<% if p('es_config.service') == true || p('es_config.service') =~ (/(true|t|yes|y|1)$/i) %>
-check process es_config
-  with pidfile /var/vcap/sys/run/es_config/es_config.pid
-  start program "/var/vcap/jobs/es_config/bin/ctl start"
-  stop program "/var/vcap/jobs/es_config/bin/ctl stop"
-  group vcap
-<% end %>
-

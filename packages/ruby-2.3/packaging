@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+# abort script on any command that exits with a non zero value
+set -e -x
+
+# Grab the latest versions that are in the directory
+RUBY_VERSION=`ls -r ruby-2.3/ruby-* | sed 's/ruby-2.3\/ruby-\(.*\)\.tar\.gz/\1/' | head -1`
+RUBYGEMS_VERSION=`ls -r ruby-2.3/rubygems-* | sed 's/ruby-2.3\/rubygems-\(.*\)\.tgz/\1/' | head -1`
+BUNDLER_VERSION=`ls -r ruby-2.3/bundler-* | sed 's/ruby-2.3\/bundler-\(.*\)\.gem/\1/' | head -1`
+RAKE_VERSION=`ls -r ruby-2.3/rake-* | sed 's/ruby-2.3\/rake-\(.*\)\.gem/\1/' | head -1`
+
+BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
+
+echo "Extracting ruby-${RUBY_VERSION} ..."
+tar xvf ruby-2.3/ruby-${RUBY_VERSION}.tar.gz
+
+echo "Building ruby-${RUBY_VERSION} ..."
+pushd ruby-${RUBY_VERSION}
+  LDFLAGS="-Wl,-rpath -Wl,${BOSH_INSTALL_TARGET}" ./configure --prefix=${BOSH_INSTALL_TARGET} --disable-install-doc --with-opt-dir=${BOSH_INSTALL_TARGET}
+  make
+  make install
+popd
+
+echo "Extracting rubygems-${RUBYGEMS_VERSION} ..."
+tar zxvf ruby-2.3/rubygems-${RUBYGEMS_VERSION}.tgz
+
+echo "Installing rubygems-${RUBYGEMS_VERSION} ..."
+pushd rubygems-${RUBYGEMS_VERSION}
+  ${BOSH_INSTALL_TARGET}/bin/ruby setup.rb
+  if [[ $? != 0 ]] ; then
+    echo "Error installing rubygems ... Exiting."
+    exit 1
+  fi
+popd
+
+#echo "Installing rubygems-${RUBYGEMS_VERSION} ..."
+#${BOSH_INSTALL_TARGET}/bin/gem install ruby-2.3/bundler-${BUNDLER_VERSION}.gem --local --no-ri --no-rdoc
+
+echo "Installing rake-${RAKE_VERSION} ..."
+${BOSH_INSTALL_TARGET}/bin/gem install ruby-2.3/rake-${RAKE_VERSION}.gem --local --no-ri --no-rdoc

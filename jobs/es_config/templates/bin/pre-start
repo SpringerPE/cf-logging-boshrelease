@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -e
+
+# Load job properties
+source /var/vcap/jobs/es_config/data/properties.sh
+
+$JOB_DIR/bin/configure-es.sh
+

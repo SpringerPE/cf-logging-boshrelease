@@ -1,13 +1,15 @@
 ---
 name: es_config
 
+description: This job configures ES settings: templates, shards, etc. It can also upload docs to ES.
+
 packages:
 - bosh-helpers
 
 templates:
-  bin/ctl: bin/ctl
   bin/pre-start.erb: bin/pre-start
   bin/run: bin/run
+  bin/configure-es.sh.erb: bin/configure-es.sh
   bin/lib.sh: bin/lib.sh
   config/index-templates/shards-and-replicas.json.erb: config/index-templates/shards-and-replicas.json
   config/index-templates/index-settings.json.erb: config/index-templates/index-settings.json
@@ -23,28 +25,30 @@ consumes:
   optional: true
 
 properties:
-  es_config.service:
-    description: Define this job as monit process or as an errand process.
-    default: true
-  es_config.template_index:
-    description: |
-      Template prefix of log indices that can uniquely distinguish them among other ES indices. 
-      It is used in the index templates predefined in the job to specify index pattern.
-      Make sure the prefix matches the index property set for your parser.
-    default: "logs-*"
-  es_config.template_index_cf_apps:
-    description: Name prefix of your `app` log indices.
-    default: "logs-app-*"
-  es_config.template_index_cf_platform:
-    description: Name prefix of your `platform` log indices.
-    default: "logs-platform-*"
-
+  es_config.templates:
+    description: "An array with key-value hashes; keys being template name, value being template content"
+    default: []
+  es_config.license:
+    description: "The ElasticSearch License string"
   es_config.settings.shards:
     description: Number of shards to apply to the index template pattern.
     default: 5
   es_config.settings.replicas:
     description: Number of replicas to apply to the index template pattern.
     default: 1
+
+  cf_logging.template_index:
+    description: |
+      Template prefix of log indices that can uniquely distinguish them among other ES indices. 
+      It is used in the index templates predefined in the job to specify index pattern.
+      Make sure the prefix matches the index property set for your parser.
+    default: "logs-cf-*"
+  cf_logging.template_index_cf_apps:
+    description: Name prefix of your `app` log indices.
+    default: "logs-cf-app-*"
+  cf_logging.template_index_cf_platform:
+    description: Name prefix of your `platform` log indices.
+    default: "logs-cf-platform-*"
 
   elasticsearch_config.elasticsearch.host:
     description: "The elasticsearch master node hostname"
@@ -54,7 +58,6 @@ properties:
   elasticsearch_config.elasticsearch.proto:
     description: "Elasticsearch communication protocol, http by default"
     default: http
-
   elasticsearch_config.elasticsearch.endpoint:
     description: "Main Elasticsearch HTTP endpoint. Takes priority over the previous settings."
     example: "https://xxxxxxxxxxxxxxxxxxx.europe-west1.gcp.cloud.es.io:9243"
@@ -64,10 +67,4 @@ properties:
     description: "Elasticsearch HTTP auth password"
   elasticsearch_config.elasticsearch.auth:
     description: "Elasticsearch user:password string"
-
-  es_config.templates:
-    description: "An array with key-value hashes; keys being template name, value being template content"
-    default: []
-  es_config.license:
-    description: "The ElasticSearch License string"
 
