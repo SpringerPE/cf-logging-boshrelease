@@ -1,0 +1,11 @@
+---
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/conf?
+  value:
+    xpack.management.enabled: true
+    xpack.management.elasticsearch.url: ((xpack.management.es_url))
+    xpack.management.elasticsearch.username: ((xpack.management.es_username))
+    xpack.management.elasticsearch.password: ((xpack.management.es_password))
+    xpack.management.logstash.poll_interval: 5s
+    xpack.management.pipeline.id: ["syslog"]
+

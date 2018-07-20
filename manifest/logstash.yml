@@ -1,4 +1,6 @@
 ---
+# Base manifest
+
 name: logstash
 
 releases:
