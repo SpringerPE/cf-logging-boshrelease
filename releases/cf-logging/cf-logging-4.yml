@@ -1,0 +1,54 @@
+name: cf-logging
+version: "4"
+commit_hash: 9afc5c9
+uncommitted_changes: true
+jobs:
+- name: es_config
+  version: 53952391e70eedd661f7b355137920bcd35cc754
+  fingerprint: 53952391e70eedd661f7b355137920bcd35cc754
+  sha1: 669f8905702597b3c7cee728dd4e79bfce7f1b67
+- name: kibana_config
+  version: 1e417bf2ed49e5e5b5ee33f38b19a867350e2fb7
+  fingerprint: 1e417bf2ed49e5e5b5ee33f38b19a867350e2fb7
+  sha1: 56f1b01c29f5d34d4201ed95b455362509000719
+- name: logstash
+  version: 314aff8bae2488bed43ead9acfc38fb03abbfeed
+  fingerprint: 314aff8bae2488bed43ead9acfc38fb03abbfeed
+  sha1: 82479c83cde0344239f79526db0369793eab9bbf
+- name: logstash_exporter
+  version: cfa4d0d8f0064bb4198fcac1240d4c941760515b
+  fingerprint: cfa4d0d8f0064bb4198fcac1240d4c941760515b
+  sha1: eec359be82f19693d9c6fc0b91f4171b166e9cc2
+packages:
+- name: bosh-helpers
+  version: cab3f7d1012fb8d71910fd9b84be7a222ae4bbc3
+  fingerprint: cab3f7d1012fb8d71910fd9b84be7a222ae4bbc3
+  sha1: 8761f0a8793041bc2a7433e7b4303cf37c9b4168
+  dependencies: []
+- name: golang
+  version: 4fa7547ed1ef1acd087e80188f9c800415a796ea
+  fingerprint: 4fa7547ed1ef1acd087e80188f9c800415a796ea
+  sha1: 283ee5da53112d74551e23abefeb11ff7d815337
+  dependencies: []
+- name: logstash
+  version: 90d7ccc06210853123556d7e79c536ede6223647
+  fingerprint: 90d7ccc06210853123556d7e79c536ede6223647
+  sha1: 757ad7d78784f533d8419d9e69b206f2db03972b
+  dependencies:
+  - openjdk-1.8
+- name: logstash_exporter
+  version: 88dbb8e3aa0b76e3fe39a454b75e129c23dc03cd
+  fingerprint: 88dbb8e3aa0b76e3fe39a454b75e129c23dc03cd
+  sha1: b41160ec523f9df3b7384ef51bd3891102728a9a
+  dependencies:
+  - golang
+- name: openjdk-1.8
+  version: f44aecbdeddd7a91bfb656edce993b79624218da
+  fingerprint: f44aecbdeddd7a91bfb656edce993b79624218da
+  sha1: 1992f759c006b262ec6a571d755e41758bd9afbb
+  dependencies: []
+- name: ruby-2.3
+  version: 1f6f66b7164aedacff98d1fcf3350dc6a2f99fe2
+  fingerprint: 1f6f66b7164aedacff98d1fcf3350dc6a2f99fe2
+  sha1: 8aafbe5d3e7e13f0aa4a3783b8d210ebf5d28c2b
+  dependencies: []

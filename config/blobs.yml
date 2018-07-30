@@ -1,21 +1,28 @@
 golang/go1.10.linux-amd64.tar.gz:
   size: 119905205
+  object_id: 5aa8610a-8bac-49f9-61a6-944dc4ca8b97
   sha: 693e2dfd99ef2d608b41c450efd9d277bf2a7f2f
 logstash/logstash-6.3.1.tar.gz:
   size: 143870472
+  object_id: 020321ba-6537-4f76-5719-8fe697e45801
   sha: 9088a667b0cf0ece7bcacdfd62c8721d213bcbeb
 openjdk-1.8/openjdk-1.8.0_172.tar.gz:
   size: 77631973
+  object_id: a53f5f4f-6e36-41ba-5b1d-c2a6975db996
   sha: e308bf64a796bc55ea4faf0e8097d8ddf9fba1a4
 ruby-2.3/bundler-1.16.3.gem:
   size: 353792
+  object_id: 5923a692-3284-48ec-5dc3-8471e9d4cf9e
   sha: ca6a670c29d2928a8dca24ee95a7978c8a532e36
 ruby-2.3/rake-12.3.1.gem:
   size: 84992
+  object_id: 8b7f908c-c5a6-407f-59d0-c35610b9cf38
   sha: d0dab0b05fcf7ecd11065e16ce74211e4b60c6cd
 ruby-2.3/ruby-2.3.7.tar.gz:
   size: 17859100
+  object_id: 244ec467-518e-4682-4ace-4efe88f873e9
   sha: 540996fec64984ab6099e34d2f5820b14904f15a
 ruby-2.3/rubygems-2.7.7.tgz:
   size: 915847
+  object_id: c646e728-d2ac-414e-6a9a-6067b226203b
   sha: 2ee981e5e8331071b29e7599f9b45ae2d79ed975
