@@ -43,6 +43,13 @@ then
     exit 1
 fi
 
+# You need sha1sum installed  (brew md5sha1sum)
+if ! [ -x "$(command -v $SHA1)" ]
+then
+    echo "ERROR: $SHA1 command not found! Please install it and make it available in the PATH"
+    exit 1
+fi
+
 if [ -n "$RELEASE_BUCKET" ]
 then
     # You need s3cmd installed and with you credentials
@@ -111,7 +118,7 @@ then
     echo "* Creating final release ..."
     $BOSH_CLI create-release --force --final --tarball="/tmp/$RELEASE-$$.tgz" --name "$RELEASE"
     # Get the version of the release
-    version=$(ls -r -v releases/$RELEASE/$RELEASE-*.yml | sed 's/.*\/.*-\(.*\)\.yml$/\1/' | head -1)
+    version=$(ls releases/$RELEASE/$RELEASE-*.yml | sed 's/.*\/.*-\(.*\)\.yml$/\1/' | sort -rn | head -1)
 else
     echo "* Creating final release version $version ..."
     $BOSH_CLI create-release --force --final --tarball="/tmp/$RELEASE-$$.tgz" --name "$RELEASE" --version "$version"
