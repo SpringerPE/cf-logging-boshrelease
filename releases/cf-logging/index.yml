@@ -5,6 +5,8 @@ builds:
     version: "4"
   cac734ad-b583-4966-7e58-7302e13403a9:
     version: "1"
+  cd634a10-78ad-4598-7dcc-4d12dc454c55:
+    version: "4.1"
   deb1ad72-5b8a-42fc-579b-fe43026987c2:
     version: "2"
 format-version: "2"
