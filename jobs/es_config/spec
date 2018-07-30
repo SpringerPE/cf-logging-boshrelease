@@ -1,7 +1,7 @@
 ---
 name: es_config
 
-description: This job configures ES settings: templates, shards, etc. It can also upload docs to ES.
+description: "This job configures ES settings: templates, shards, etc. It can also upload docs to ES."
 
 packages:
 - bosh-helpers
