@@ -26,6 +26,15 @@ consumes:
 - name: elasticsearch
   type: elasticsearch
   optional: true
+- name: logstash
+  type: syslog
+  optional: true
+
+provides:
+- name: logstash
+  type: syslog
+  properties:
+  - logstash.env
 
 properties:
   logstash.plugins:
