@@ -126,7 +126,7 @@ fi
 
 # Create a new tag and update the changes
 echo "* Commiting git changes ..."
-git add .final_builds releases/$RELEASE/index.yml "releases/$RELEASE/$RELEASE-$version.yml" blobstore
+git add .final_builds releases/$RELEASE/index.yml "releases/$RELEASE/$RELEASE-$version.yml"
 git commit -m "$RELEASE v$version Boshrelease"
 git push --tags
 
