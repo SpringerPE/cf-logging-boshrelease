@@ -7,7 +7,7 @@ packages:
 - bosh-helpers
 
 templates:
-  bin/pre-start.erb: bin/pre-start
+  bin/pre-start: bin/pre-start
   bin/run: bin/run
   bin/configure-es.sh.erb: bin/configure-es.sh
   bin/lib.sh: bin/lib.sh
