@@ -48,7 +48,7 @@ OperSNIPPETS
         then
             echo -n "* Adding snippet '${folder}/${i}' ... "
             echo "        ${i%%.*}: |" >> "${manifest}"
-            sed -e 's/^/          /' "${folder}/${i}" >> "${manifest}"
+            sed -e 's/[[:space:]]*$//' -e 's/^/          /' "${folder}/${i}" >> "${manifest}"
             echo "ok"
         else
             echo "* WARNING snippet '${folder}/${i}' not found!"
