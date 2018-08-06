@@ -24,12 +24,18 @@
               mutate {
                   rename => [ "message", "@message" ]
           
+                  # Add tags to track which job processed this event
+                  add_field => { "[@parser][job]" => "${JOB_FULL_AZ_DEPLOYMENT}" }
+                  add_field => { "[@parser][instance] => "$INSTANCE_ID"}
+                  add_field => { "[@parser][az]" => "${JOB_AZ}" }
+                  add_field => { "[@parser][name]" => "${JOB_NAME}" }
+                  add_field => { "[@parser][index]" => "${JOB_INDEX}" }
+                  add_field => { "[@parser][deployment]" => "${DEPLOYMENT_NAME}" }
+                  add_field => { "[@parser][lb]" => "%{host}" }
+          
                   # When behind LB, this is always the IP of the haproxy, not the IP of the actual host sending the data.
                   # Remove it to avoid confusion
                   remove_field => [ "host" ]
-          
-                  # Add tags to track which job processed this event
-                  add_field => { "[@parser][job]" => "${JOB_FULL_AZ_DEPLOYMENT}" }
               }
           
               if [_type] {
@@ -60,9 +66,9 @@
           filter {
               grok {
                 match => [ "@message", "%{SYSLOG5424LINE}" ]
-                add_tag => [ "syslog_standard" ]
+                add_tag => [ "syslog-5424" ]
                 add_field => { "@raw" => "%{@message}"}
-                tag_on_failure => ["fail/syslog_standard/_grokparsefailure"]
+                tag_on_failure => ["fail/syslog-5424/grok"]
               }
           
               syslog_pri { 
@@ -87,9 +93,9 @@
                   remove_field => [
                       "syslog5424_sd"
                   ]
-                  tag_on_failure => [ "fail/syslog_standard/_grokparsefailure-syslog_standard-5424/sds" ]
+                  tag_on_failure => [ "fail/syslog-5424/sd/grok" ]
               }
-              if !("fail/syslog_standard/_grokparsefailure-syslog_standard-5424/sd" in [tags]) {
+              if !("fail/syslog-5424/sd/grok" in [tags]) {
                   # Convert the the key-value pairs
                   kv {
                       source => "syslog_sd_params_raw"
@@ -116,7 +122,6 @@
                   }
               }
           
-          
               # @message should contain the remaining unparsed text
               mutate {
                   rename => { "syslog5424_msg" => "@message" }
@@ -126,27 +131,6 @@
                 mutate {
                   add_field => [ "@type", "unknown" ]
                 }
-              }
-          }
-          
-        filter-15-set_platform_index: |
-          ##---------
-          # Set index
-          ##---------
-          
-          # @index_type stores type of index: app/platform
-          # [@metadata][index] stores full index prefix (for app logs additionally includes org and space name)
-          
-          filter {
-              # by default logs go to 'platform'
-              mutate {
-                  add_field => { 
-                    "@index_type" => "platform"
-                    "[@metadata][index]" => "platform"
-                  }
-                  # default for platform logs
-                  replace => { "[@source][type]" => "system" }
-                  add_tag => "platform"
               }
           }
           
@@ -161,8 +145,10 @@
                 add_field => { "@input" => "%{@type}" }
                 rename => { "syslog5424_pri" => "[@shipper][priority]" }
                 replace => { "[@shipper][name]" => "%{syslog5424_app}/%{[@type]}" }
+                add_field => { "[@shipper][type]" => "%{syslog5424_proc}" }
                 add_field => { "[@source][component]" => "%{syslog5424_app}" }
-                add_field => { "[@source][type]" => "syslog" }
+                add_field => { "[@source][type]" => "%{syslog5424_proc}" }
+                add_field => { "[@source][env]" => "${CF_ENV:cf}" }
               }
           
               # Syslog message with RFC 5424 and the enterprise number is CF
@@ -176,10 +162,10 @@
                           "[@source][job]" => "%{[syslog_sd_params][group]}"
                       }
                       replace => {
-                          "[@source][type]" => "cf"
+                          "[@source][type]" => "syslog-5424"
                           "@type" => "cf"
                       }
-                      add_tag => "cf"
+                      add_tag => "47450"
                   }
               } else {
                   # Try parsing with possible CF formats
@@ -201,7 +187,25 @@
               }
           }
           
-        filter-51-platform_haproxy_parsing: |
+        filter-51-set-metadata-index: |
+          ##---------
+          # Set index
+          ##---------
+          
+          # @index_type stores type of index: app/platform
+          # [@metadata][index] stores full index prefix (for app logs additionally includes org and space name)
+          
+          filter {
+              # by default logs go to 'platform'
+              mutate {
+                  add_field => { "@index_type" => "platform" }
+                  add_field => { "[@metadata][index]" => "%{@index_type}-%{[@source][deployment]}" }
+                  add_tag => "platform"
+                  lowercase => [ "[@metadata][index]" ]
+              }
+          }
+          
+        filter-61-platform_haproxy_parsing: |
           ##----------------------------------
           # Haproxy conf. Parses haproxy logs.|
           ##----------------------------------
@@ -245,7 +249,7 @@
                   }
               }
           }
-        filter-52-platform_uaa_parsing: |
+        filter-62-platform_uaa_parsing: |
           ##-------------------------
           # Uaa conf. Parses uaa logs
           ##-------------------------
@@ -302,7 +306,7 @@
                   }
               }
           }
-        filter-53-platform_vcap_and_json_parsing: |
+        filter-63-platform_vcap_and_json_parsing: |
           ##------------------------------------------
           # Vcap conf. Parses vcap* logs. (after UAA!)
           ##------------------------------------------
@@ -359,19 +363,19 @@
           filter {
               # set syslog @level (if @level is not set yet)
               if ![@level] and [syslog_severity_code] {
-                  if [syslog_severity_code] <= 3 { # 0-Emergency, 1-Alert, 2-Critical, 3-Error
+                  if [syslog_severity_code] <= 3 {                      # 0-Emergency, 1-Alert, 2-Critical, 3-Error
                       mutate {
                           add_field => { "@level" => "ERROR" }
                       }
-                  } else if [syslog_severity_code] <= 5 { # 4-Warning, 5-Notice
+                  } else if [syslog_severity_code] <= 5 {               # 4-Warning, 5-Notice
                       mutate {
                           add_field => { "@level" => "WARN" }
                       }
-                  } else if [syslog_severity_code] == 6 { # 6-Informational
+                  } else if [syslog_severity_code] == 6 {               # 6-Informational
                       mutate {
                           add_field => { "@level" => "INFO" }
                       }
-                  } else if [syslog_severity_code] == 7 { #7-Debug
+                  } else if [syslog_severity_code] == 7 {               # 7-Debug
                       mutate {
                           add_field => { "@level" => "DEBUG" }
                       }
@@ -466,7 +470,7 @@
               user => "${ES_USER}"
               password => "${ES_PASSWORD}"
               sniffing => false
-              index => "syslog-platform-logs-%{+YYYY.MM.dd}"
+              index => "${ES_INDEX_PREFIX:logs}-%{[@metadata][index]}-%{+YYYY.MM.dd}"
               http_compression => true
               manage_template => false
               id => "output-es/${JOB_FULL_AZ_DEPLOYMENT}"
