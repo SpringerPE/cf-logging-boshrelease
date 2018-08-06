@@ -130,6 +130,7 @@
                           "[@shipper][severity]" => "%{syslog_severity_code}"
                           "[@shipper][name]" => "${SOURCE_SHIPPER:syslog}"
                           "[@shipper][type]" => "%{[@metadata][app_source]}"
+                          "[@shipper][host]" => "%{[syslog5424_host]}"
           
                           "@generator" => "%{[@metadata][app_source][0]}"
                           "@instance" => "%{[@metadata][app_source][-1]}"

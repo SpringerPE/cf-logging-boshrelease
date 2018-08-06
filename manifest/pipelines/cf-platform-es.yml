@@ -7,6 +7,7 @@
           ##-------------
           # Pre filtering
           ##-------------
+          
           filter {
               mutate {
                   # Replace the unicode empty character \u0000 with ""
@@ -22,36 +23,23 @@
               }
           
               mutate {
-                  rename => [ "message", "@message" ]
+                  rename => { "message" => "@message" }
           
                   # Add tags to track which job processed this event
-                  add_field => { "[@parser][job]" => "${JOB_FULL_AZ_DEPLOYMENT}" }
-                  add_field => { "[@parser][instance] => "$INSTANCE_ID"}
-                  add_field => { "[@parser][az]" => "${JOB_AZ}" }
-                  add_field => { "[@parser][name]" => "${JOB_NAME}" }
-                  add_field => { "[@parser][index]" => "${JOB_INDEX}" }
-                  add_field => { "[@parser][deployment]" => "${DEPLOYMENT_NAME}" }
-                  add_field => { "[@parser][lb]" => "%{host}" }
+                  add_field => {
+                          "[@parser][job]" => "${JOB_FULL_AZ_DEPLOYMENT}"
+                          "[@parser][instance]" => "${INSTANCE_ID}"
+                          "[@parser][az]" => "${JOB_AZ}"
+                          "[@parser][name]" => "${JOB_NAME}"
+                          "[@parser][index]" => "${JOB_INDEX}"
+                          "[@parser][deployment]" => "${DEPLOYMENT_NAME}"
+                          "[@parser][lb-host]" => "%{host}"
+                          "[@parser][lb-port]" => "%{port}"
+                  }
           
                   # When behind LB, this is always the IP of the haproxy, not the IP of the actual host sending the data.
                   # Remove it to avoid confusion
-                  remove_field => [ "host" ]
-              }
-          
-              if [_type] {
-                  mutate {
-                      add_field => [ "type", "%{_type}" ]
-                  }
-              }
-          
-              if [type] != '' {
-                  mutate {
-                      rename => [ "type", "@type" ]
-                  }
-              } else {
-                  mutate {
-                      add_field => [ "@type", "unknown" ]
-                  }
+                  remove_field => [ "host", "port" ]
               }
           }
           
@@ -65,13 +53,19 @@
           
           filter {
               grok {
-                match => [ "@message", "%{SYSLOG5424LINE}" ]
-                add_tag => [ "syslog-5424" ]
-                add_field => { "@raw" => "%{@message}"}
-                tag_on_failure => ["fail/syslog-5424/grok"]
+                  match => { "@message" => "%{POSINT:syslog_code} %{SYSLOG5424LINE}" }
+                  add_tag => [ "syslog-5424" ]
+                  add_field => {
+                          "@type" => "log"
+                          "@input" => "syslog"
+                          "@raw" => "%{@message}"
+                  }
+                  tag_on_failure => ["fail/syslog-5424/grok"]
               }
           
-              syslog_pri { 
+              #                "@level" => "NONE"
+          
+              syslog_pri {
                   syslog_pri_field_name => "syslog5424_pri"
               }
           
@@ -82,9 +76,27 @@
               }
           
               mutate {
-                  # Populate @source.host
-                  add_field => [ "[@source][host]", "%{syslog5424_host}" ]
-                  convert => [ "syslog5424_ver", "integer" ]
+                  # '@message' should contain the remaining unparsed text
+                  rename => { "syslog5424_msg" => "@message" }
+                  add_field => {
+                          "[@shipper][proto]" => "%{@input}"
+                          "[@shipper][code]" => "%{syslog_code}"
+                          "[@shipper][version]" => "%{syslog5424_ver}"
+                          "[@shipper][facility]" => "%{syslog_facility_code}"
+                          "[@shipper][priority]" => "%{syslog5424_pri}"
+                          "[@shipper][severity]" => "%{syslog_severity_code}"
+                          "[@shipper][name]" => "%{syslog5424_app}"
+                          "[@shipper][type]" => "%{syslog5424_proc}"
+                          "[@shipper][host]" => "%{[syslog5424_host]}"
+          
+                          "[@source][component]" => "%{syslog5424_app}" }
+                          "[@source][type]" => "%{syslog5424_proc}" }
+                          "[@source][env]" => "${CF_ENV:cf}" }
+                          "[@source][host]" => "%{[syslog5424_host]}"
+          
+                          "@generator" => "%{[syslog5424_host]}"
+                          "@instance"  => "-1"
+                  }
               }
           
               # Extract instance metadata from structured data
@@ -104,13 +116,48 @@
                           "syslog_sd_params_raw"
                       ]
                   }
+          
+                  # Syslog message with RFC 5424 and the enterprise number is CF
+                  if [syslog_sd_id] == "instance@47450" {
+                      mutate {
+                          add_field => {
+                              "[@source][az]" => "%{[syslog_sd_params][az]}"
+                              "[@source][deployment]" => "%{[syslog_sd_params][deployment]}"
+                              "[@source][director]" => "%{[syslog_sd_params][director]}"
+                              "[@source][id]" => "%{[syslog_sd_params][id]}"
+                              "[@source][job]" => "%{[syslog_sd_params][group]}"
+                              "[@source][instance]" => "0"
+                          }
+                          replace => {
+                              "@generator" => "%{[syslog_sd_params][group]}"
+                              "[@source][type]" => "instance@47450"
+                              "@type" => "cf"
+                          }
+                          add_tag => "47450"
+                      }
+                  }
                   # When an additional host is specified in the sd_params, promote syslog_hostname to @shipper.host
                   # and replace @source.host with sd_params.host
                   if [syslog_sd_params][host] {
-                    mutate {
-                      add_field => { "[@shipper][host]" => "%{[syslog5424_host]}" }
-                      replace => { "[@source][host]" => "%{[syslog_sd_params][host]}" }
-                    }
+                      mutate {
+                          replace => {
+                              "[@source][host]" => "%{[syslog_sd_params][host]}"
+                          }
+                      }
+                  }
+                  if [syslog_sd_params][instance] {
+                      mutate {
+                          replace => {
+                              "@instance"  => "%{[syslog_sd_params][instance]}"
+                              "[@source][instance]" "%{[syslog_sd_params][instance]}"
+                          }
+                      }
+                      mutate {
+                          convert => {
+                              "[@source][instance]" => "integer"
+                              "@instance" => "integer"
+                          }
+                      }
                   }
                   if [syslog_sd_params][type] {
                      # when the syslog params include a type, prepare the message for parsing by additional downstream parsing rules:
@@ -122,15 +169,60 @@
                   }
               }
           
-              # @message should contain the remaining unparsed text
               mutate {
-                  rename => { "syslog5424_msg" => "@message" }
+                  lowercase => [ "[@source][type]", "[@source][component]" ]
+                  convert => {
+                      "[@shipper][version]" => "integer"
+                      "[@shipper][facility]" => "integer"
+                      "[@shipper][code]" => "integer"
+                      "[@shipper][priority]" => "integer"
+                      "[@shipper][severity]" => "integer"
+                  }
+                  remove_field => [ "syslog_code" ]
               }
+          }
           
-              if ![@type] {
-                mutate {
-                  add_field => [ "@type", "unknown" ]
-                }
+        filter-12-platform_sd_parsing: |
+          ##-----------------------
+          # Platform parsing not CF
+          ##-----------------------
+          
+          filter {
+              # Syslog message with RFC 5424 but enterprise number is not CF
+              if (! [syslog_sd_id] or [syslog_sd_id] != "instance@47450") {
+                  # Try parsing with possible CF formats
+                  grok {
+                      # Metron agent format (https://github.com/cloudfoundry/loggregator/blob/master/jobs/metron_agent/templates/syslog_forwarder.conf.erb#L53)
+                      match => [ "@message", "\[job=%{NOTSPACE:[@source][job]} index=%{INT:[@source][index]:int}\]%{SPACE}%{GREEDYDATA:@message}" ]
+                      # Syslog release format (https://github.com/cloudfoundry/syslog-release/blob/master/jobs/syslog_forwarder/templates/rsyslog.conf.erb#L56)
+                      match => [ "@message", "\[bosh instance=%{NOTSPACE:[@source][deployment]}/%{NOTSPACE:[@source][job]}/%{NOTSPACE:[@source][job_index]}\]%{SPACE}%{GREEDYDATA:@message}" ]
+                      overwrite => [ "@message" ]
+                      tag_on_failure => "fail/cloudfoundry/platform/grok"
+                  }
+                  if !("fail/cloudfoundry/platform/grok" in [tags]) {
+                      mutate {
+                          replace => { "[@source][type]" => "cf" }
+                          replace => { "@type" => "cf" }
+                          add_tag => "cf"
+                      }
+                  }
+              }
+          }
+          
+        filter-20-set-metadata-index: |
+          ##---------
+          # Set index
+          ##---------
+          
+          # @index_type stores type of index: app/platform
+          # [@metadata][index] stores full index prefix (for app logs additionally includes org and space name)
+          
+          filter {
+              # by default logs go to 'platform'
+              mutate {
+                  add_field => { "@index_type" => "platform" }
+                  add_field => { "[@metadata][index]" => "%{@index_type}-%{[@source][deployment]}" }
+                  lowercase => [ "[@metadata][index]" ]
               }
           }
           
@@ -184,24 +276,6 @@
                           add_tag => "cf"
                       }
                   }
-              }
-          }
-          
-        filter-51-set-metadata-index: |
-          ##---------
-          # Set index
-          ##---------
-          
-          # @index_type stores type of index: app/platform
-          # [@metadata][index] stores full index prefix (for app logs additionally includes org and space name)
-          
-          filter {
-              # by default logs go to 'platform'
-              mutate {
-                  add_field => { "@index_type" => "platform" }
-                  add_field => { "[@metadata][index]" => "%{@index_type}-%{[@source][deployment]}" }
-                  add_tag => "platform"
-                  lowercase => [ "[@metadata][index]" ]
               }
           }
           
