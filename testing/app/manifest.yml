@@ -1,0 +1,7 @@
+---
+applications:
+- name: logging-test
+  memory: 128M
+  instances: 1
+  routes:
+  - route: public.app
