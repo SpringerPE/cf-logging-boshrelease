@@ -1,4 +1,86 @@
 - type: replace
+  path: /instance_groups/name=logstash/properties/logstash/conf?/xpack.management.pipeline.id?/-
+  value:
+    "cf-platform-es"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env?/DST_HOSTS?
+  value:
+    "((es.host))"
+
+- type: replace
+  path: /variables?/-
+  value:
+    name: es.host
+    type: value
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/ES_USER?
+  value:
+    "((es.user))"
+
+- type: replace
+  path: /variables/-
+  value:
+    name: es.user
+    type: user
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/ES_PASSWORD?
+  value:
+    "((es.password))"
+
+- type: replace
+  path: /variables/-
+  value:
+    name: es.password
+    type: password
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/ES_INDEX_PREFIX?
+  value:
+    "((es.index_prefix))"
+
+- type: replace
+  path: /variables/-
+  value:
+    name: es.index_prefix
+    type: value
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/CF_API?
+  value:
+    "((cf_api))"
+
+- type: replace
+  path: /variables/-
+  value:
+    name: cf_api
+    type: value
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/SOURCE_ENV?
+  value:
+    "((source_env))"
+
+- type: replace
+  path: /variables/-
+  value:
+    name: source_env
+    type: value
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/SOURCE_PLATFORM?
+  value:
+    "((source_platform))"
+
+- type: replace
+  path: /variables/-
+  value:
+    name: source_platform
+    type: value
+
+- type: replace
   path: /instance_groups/name=logstash/properties/logstash/pipelines?
   value:
     - name: cf-platform-es
@@ -89,9 +171,9 @@
                           "[@shipper][type]" => "%{syslog5424_proc}"
                           "[@shipper][host]" => "%{[syslog5424_host]}"
           
-                          "[@source][component]" => "%{syslog5424_app}" }
-                          "[@source][type]" => "%{syslog5424_proc}" }
-                          "[@source][env]" => "${CF_ENV:cf}" }
+                          "[@source][component]" => "%{syslog5424_app}"
+                          "[@source][type]" => "%{syslog5424_proc}"
+                          "[@source][env]" => "${SOURCE_ENV:cf}"
                           "[@source][host]" => "%{[syslog5424_host]}"
           
                           "@generator" => "%{[syslog5424_host]}"
@@ -223,59 +305,6 @@
                   add_field => { "@index_type" => "platform" }
                   add_field => { "[@metadata][index]" => "%{@index_type}-%{[@source][deployment]}" }
                   lowercase => [ "[@metadata][index]" ]
-              }
-          }
-          
-        filter-50-platform_sd_parsing: |
-          ##-----------------------------
-          # Platform parsing: AZ, job ...
-          ##-----------------------------
-          
-          filter {
-              # Initialize @input, @shipper and @source
-              mutate {
-                add_field => { "@input" => "%{@type}" }
-                rename => { "syslog5424_pri" => "[@shipper][priority]" }
-                replace => { "[@shipper][name]" => "%{syslog5424_app}/%{[@type]}" }
-                add_field => { "[@shipper][type]" => "%{syslog5424_proc}" }
-                add_field => { "[@source][component]" => "%{syslog5424_app}" }
-                add_field => { "[@source][type]" => "%{syslog5424_proc}" }
-                add_field => { "[@source][env]" => "${CF_ENV:cf}" }
-              }
-          
-              # Syslog message with RFC 5424 and the enterprise number is CF
-              if [syslog_sd_id] == "instance@47450" {
-                  mutate {
-                      add_field => {
-                          "[@source][az]" => "%{[syslog_sd_params][az]}"
-                          "[@source][deployment]" => "%{[syslog_sd_params][deployment]}"
-                          "[@source][director]" => "%{[syslog_sd_params][director]}"
-                          "[@source][id]" => "%{[syslog_sd_params][id]}"
-                          "[@source][job]" => "%{[syslog_sd_params][group]}"
-                      }
-                      replace => {
-                          "[@source][type]" => "syslog-5424"
-                          "@type" => "cf"
-                      }
-                      add_tag => "47450"
-                  }
-              } else {
-                  # Try parsing with possible CF formats
-                  grok {
-                      # Metron agent format (https://github.com/cloudfoundry/loggregator/blob/master/jobs/metron_agent/templates/syslog_forwarder.conf.erb#L53)
-                      match => [ "@message", "\[job=%{NOTSPACE:[@source][job]} index=%{INT:[@source][index]:int}\]%{SPACE}%{GREEDYDATA:@message}" ]
-                      # Syslog release format (https://github.com/cloudfoundry/syslog-release/blob/master/jobs/syslog_forwarder/templates/rsyslog.conf.erb#L56)
-                      match => [ "@message", "\[bosh instance=%{NOTSPACE:[@source][deployment]}/%{NOTSPACE:[@source][job]}/%{NOTSPACE:[@source][job_index]}\]%{SPACE}%{GREEDYDATA:@message}" ]
-                      overwrite => [ "@message" ]
-                      tag_on_failure => "fail/cloudfoundry/platform/grok"
-                  }
-                  if !("fail/cloudfoundry/platform/grok" in [tags]) {
-                      mutate {
-                          replace => { "[@source][type]" => "cf" }
-                          replace => { "@type" => "cf" }
-                          add_tag => "cf"
-                      }
-                  }
               }
           }
           

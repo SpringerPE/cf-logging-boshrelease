@@ -15,7 +15,7 @@
     ((vm_type))
 
 - type: replace
-  path: /instance_groups/name=logstash/persistent_disk?
+  path: /instance_groups/name=logstash/instances?
   value:
-    1024
+    ((instances))
 

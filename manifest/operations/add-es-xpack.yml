@@ -1,0 +1,26 @@
+---
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/conf?/xpack.management.enabled?
+  value:
+    true
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/conf/xpack.management.elasticsearch.url?
+  value:
+    "${DST_HOSTS}"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/conf/xpack.management.elasticsearch.username?
+  value:
+    "${ES_USER}"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/conf/xpack.management.elasticsearch.password?
+  value:
+    "${ES_PASSWORD}"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/conf/xpack.management.logstash.poll_interval?
+  value:
+    "5s"
+

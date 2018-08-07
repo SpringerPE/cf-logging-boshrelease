@@ -4,18 +4,18 @@
 name: logstash
 
 releases:
-- name: logstash
+- name: cf-logging
   version: latest
 
 stemcells:
 - os: ubuntu-trusty
-  alias: trusty
+  alias: default
   version: latest
 
 instance_groups:
 - name: logstash
   instances: 1
-  stemcell: trusty
+  stemcell: default
   azs: [z1]
   vm_type: medium
   networks:
@@ -28,6 +28,8 @@ instance_groups:
       pipelines:
       - name: test
         config: "input { generator {} } filter { sleep { time => 1 } } output { stdout { codec => dots } }"
+
+variables: []
 
 update:
   canaries: 1

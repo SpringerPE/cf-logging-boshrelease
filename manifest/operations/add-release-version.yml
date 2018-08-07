@@ -1,0 +1,6 @@
+---
+- type: replace
+  path: /releases/name=cf-logging?
+  value:
+    ((release))
+

@@ -36,6 +36,88 @@ add_oper_snippets() {
 
     cat <<OperSNIPPETS >> "${manifest}"
 - type: replace
+  path: /instance_groups/name=logstash/properties/logstash/conf?/xpack.management.pipeline.id?/-
+  value:
+    "$name"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env?/DST_HOSTS?
+  value:
+    "((es.host))"
+
+- type: replace
+  path: /variables?/-
+  value:
+    name: es.host
+    type: value
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/ES_USER?
+  value:
+    "((es.user))"
+
+- type: replace
+  path: /variables/-
+  value:
+    name: es.user
+    type: user
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/ES_PASSWORD?
+  value:
+    "((es.password))"
+
+- type: replace
+  path: /variables/-
+  value:
+    name: es.password
+    type: password
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/ES_INDEX_PREFIX?
+  value:
+    "((es.index_prefix))"
+
+- type: replace
+  path: /variables/-
+  value:
+    name: es.index_prefix
+    type: value
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/CF_API?
+  value:
+    "((cf_api))"
+
+- type: replace
+  path: /variables/-
+  value:
+    name: cf_api
+    type: value
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/SOURCE_ENV?
+  value:
+    "((source_env))"
+
+- type: replace
+  path: /variables/-
+  value:
+    name: source_env
+    type: value
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/SOURCE_PLATFORM?
+  value:
+    "((source_platform))"
+
+- type: replace
+  path: /variables/-
+  value:
+    name: source_platform
+    type: value
+
+- type: replace
   path: /instance_groups/name=logstash/properties/logstash/pipelines?
   value:
     - name: ${name}

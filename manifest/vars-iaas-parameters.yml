@@ -1,0 +1,5 @@
+instances: 6
+network_name: default
+vm_type: medium
+disk_type: medium
+azs: [z1, z2, z3]
