@@ -196,18 +196,37 @@ the new settings with `bosh int logstash.yml -o manifest/pipelines/cf_platform.y
 
 
 
-######## 
+# Deploying with operations files:
+
+
+For example to deploy the Logstash pipeline for platform logs:
+ 
 
 ```
-bosh int manifests/logstash.yml -o manifests/add-cloud-id.yml -o manifests/pipelines/add-test.yml -o manifests/add-settings.yml  --var-file pipeline=manifests/pipelines/test.conf --vars-file manifests/secrets.yml --vars-file manifests/settings.yml
+bosh -d logstash deploy logstash.yml \
+    -o operations/pipelines/cf-platform-es.yml \
+    -o operations/add-es-cloud-id.yml \
+    -o operations/add-es-xpack.yml \
+    -o operations/add-logstash-exporter.yml \
+    -o operations/add-release-version.yml  --vars-file vars-release-version.yml \
+    -o operations/add-iaas-parameters.yml  --vars-file vars-iaas-parameters.yml
 ```
 
 
-```
-bosh int manifests/logstash.yml -o manifests/add-cloud-id.yml -o manifests/pipelines/add-logstash.yml -o manifests/add-settings.yml  --var-file pipeline=manifests/pipelines/logstash.conf --vars-file manifests/secrets.yml --vars-file manifests/settings.yml
-```
+Be aware you need to define this secrects in Credhub:
 
+```
+es:
+  cloud_id: "cf-test:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  host: "https://elastic.example.com:9000"
+  user: "elastic"
+  password: "pass"
+  index_prefix: logs
 
+cf_api: "my.cf.api.com"
+source_env: gcp
+source_platform: cf
+```
 
 
 # Author
