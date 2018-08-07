@@ -1,0 +1,7 @@
+---
+- type: replace
+  path: /instance_groups/name=logstash/jobs/-
+  value:
+    name: logstash_exporter
+    release: cf-logging
+
