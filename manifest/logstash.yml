@@ -22,7 +22,7 @@ instance_groups:
   - name: default
   jobs:
   - name: logstash
-    release: logstash
+    release: cf-logging
   properties:
     logstash:
       pipelines:
