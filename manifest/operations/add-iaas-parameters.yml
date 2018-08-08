@@ -19,3 +19,8 @@
   value:
     ((instances))
 
+- type: replace
+  path: /instance_groups/name=logstash/vm_extensions?
+  value:
+    ((vm_extensions))
+
