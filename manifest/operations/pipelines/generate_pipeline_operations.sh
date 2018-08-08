@@ -60,7 +60,7 @@ add_oper_snippets() {
   path: /variables/-
   value:
     name: es.user
-    type: user
+    type: value
 
 - type: replace
   path: /instance_groups/name=logstash/properties/logstash/env/ES_PASSWORD?
