@@ -12,12 +12,6 @@
 - type: replace
   path: /instance_groups/name=logstash/properties/logstash/env/ES_CLOUD_ID?
   value:
-    "((es.cloud_id))"
-
-- type: replace
-  path: /variables/-
-  value:
-    name: es.cloud_id
-    type: value
+    "((es-cloud_id))"
 
 
