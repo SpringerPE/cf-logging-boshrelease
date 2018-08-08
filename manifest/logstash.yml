@@ -16,7 +16,7 @@ instance_groups:
 - name: logstash
   instances: 1
   stemcell: default
-  azs: [z1]
+  azs: [z1, z2, z3]
   vm_type: medium
   networks:
   - name: default
