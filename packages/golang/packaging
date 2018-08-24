@@ -6,7 +6,7 @@ set -u # report the usage of uninitialized variables
 CPUS=$(grep -c ^processor /proc/cpuinfo)
 
 # Grab the latest versions that are in the directory
-GOLAN_VERSION=$(ls -r golang/go*.linux-amd64.tar.gz | sed 's/.*\/go\(.*\)\.linux-amd64\.tar\.gz$/\1/' | head -1)
+GOLAN_VERSION=$(ls -v -r golang/go*.linux-amd64.tar.gz | sed 's/.*\/go\(.*\)\.linux-amd64\.tar\.gz$/\1/' | head -1)
 
 # Available variables
 # $BOSH_COMPILE_TARGET - where this package & spec'd source files are available

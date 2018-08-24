@@ -4,7 +4,7 @@
 set -e -x
 
 # Grab the latest versions that are in the directory
-LOGSTASH_VERSION=$(ls -r logstash/logstash-*.tar.gz | sed 's/.*\/logstash-\(.*\)\.tar\.gz$/\1/' | head -1)
+LOGSTASH_VERSION=$(ls -v -r logstash/logstash-*.tar.gz | sed 's/.*\/logstash-\(.*\)\.tar\.gz$/\1/' | head -1)
 BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 
 export JAVA_HOME=/var/vcap/packages/java

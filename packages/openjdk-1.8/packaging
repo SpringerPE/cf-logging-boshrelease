@@ -4,7 +4,7 @@
 set -e -x
 
 # Grab the latest versions that are in the directory
-JAVA_VERSION=$(ls -r openjdk-1.8/openjdk-*.tar.gz | sed 's/.*\/openjdk-\(.*\)\.tar\.gz$/\1/' | head -1)
+JAVA_VERSION=$(ls -v -r openjdk-1.8/openjdk-*.tar.gz | sed 's/.*\/openjdk-\(.*\)\.tar\.gz$/\1/' | head -1)
 BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 
 echo "Uncompress Java OpenJDK binary ..."

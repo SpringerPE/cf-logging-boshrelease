@@ -4,10 +4,10 @@
 set -e -x
 
 # Grab the latest versions that are in the directory
-RUBY_VERSION=`ls -r ruby-2.3/ruby-* | sed 's/ruby-2.3\/ruby-\(.*\)\.tar\.gz/\1/' | head -1`
-RUBYGEMS_VERSION=`ls -r ruby-2.3/rubygems-* | sed 's/ruby-2.3\/rubygems-\(.*\)\.tgz/\1/' | head -1`
-BUNDLER_VERSION=`ls -r ruby-2.3/bundler-* | sed 's/ruby-2.3\/bundler-\(.*\)\.gem/\1/' | head -1`
-RAKE_VERSION=`ls -r ruby-2.3/rake-* | sed 's/ruby-2.3\/rake-\(.*\)\.gem/\1/' | head -1`
+RUBY_VERSION=$(ls -v -r ruby-2.3/ruby-* | sed 's/ruby-2.3\/ruby-\(.*\)\.tar\.gz/\1/' | head -1)
+RUBYGEMS_VERSION=$(ls -v -r ruby-2.3/rubygems-* | sed 's/ruby-2.3\/rubygems-\(.*\)\.tgz/\1/' | head -1)
+BUNDLER_VERSION=$(ls -v -r ruby-2.3/bundler-* | sed 's/ruby-2.3\/bundler-\(.*\)\.gem/\1/' | head -1)
+RAKE_VERSION=$(ls -v -r ruby-2.3/rake-* | sed 's/ruby-2.3\/rake-\(.*\)\.gem/\1/' | head -1)
 
 BOSH_PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
 
