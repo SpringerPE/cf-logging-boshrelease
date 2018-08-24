@@ -1,56 +1,45 @@
 golang/go1.10.linux-amd64.tar.gz:
   size: 119905205
-  object_id: 9a31a9fc-4302-48dc-52a6-37ad76bd707b
   sha: 693e2dfd99ef2d608b41c450efd9d277bf2a7f2f
 logstash/logstash-6.3.1.tar.gz:
   size: 143870472
-  object_id: f8e70430-4e44-471a-506b-645d1f59e436
   sha: 9088a667b0cf0ece7bcacdfd62c8721d213bcbeb
 lua/LuaJIT-2.0.5.tar.gz:
   size: 849845
-  object_id: db2ec46c-b0ca-4441-503a-9762b3c1c535
   sha: 10427215da7d424fd9e48adbea087966053cdb6f
 nginx-lua/headers-more-nginx-module-0.33.tar.gz:
   size: 28130
-  object_id: d4b86cda-a468-4dc5-5f1e-655aa3fadccc
   sha: 7d6af910dae98f0dbc67bf77e82eab8b7da5d0b1
 nginx-lua/lua-nginx-module-0.10.13.tar.gz:
   size: 624102
-  object_id: e8080684-e2bd-43e8-442b-aad3b510e25b
   sha: 88f16ee8f1d168d1f6c1f2a1b48d31a5f4429114
 nginx-lua/nginx-1.14.0.tar.gz:
   size: 1016272
-  object_id: 8ab191b5-6a1d-457d-5c8f-635ff04b0cf5
   sha: 016ab1a12c9a0c9444f9073e4300223ffd6fadbe
 nginx-lua/ngx_devel_kit-0.3.0.tar.gz:
   size: 66455
-  object_id: 6204e7d8-797c-45d7-580c-54740011c718
   sha: b556d068db23037be30436af559795f45dd93c67
 nginx-lua/pcre-8.42.tar.gz:
   size: 2081413
-  object_id: 0028c016-e8c4-44af-74c5-931353cc0e36
   sha: ee505270446f4c4bf52ac1a371335fdbb14465cb
 nginx-lua/zlib-1.2.11.tar.gz:
   size: 607698
-  object_id: 41792d79-1157-4fd2-4c3b-41f8913cf2d9
   sha: e6d119755acdf9104d7ba236b1242696940ed6dd
+oauth2_proxy/oauth2_proxy-2.2.0.tar.gz:
+  size: 3339647
+  sha: 1c73bc38141e079441875e5ea5e1a1d6054b4f3b
 openjdk-1.8/openjdk-1.8.0_172.tar.gz:
   size: 77631973
-  object_id: 1bb83dee-4aaf-407c-5a0f-cd9764a3d61b
   sha: e308bf64a796bc55ea4faf0e8097d8ddf9fba1a4
 ruby-2.3/bundler-1.16.3.gem:
   size: 353792
-  object_id: 3a115663-afd6-4ac1-7f74-8483d766f987
   sha: ca6a670c29d2928a8dca24ee95a7978c8a532e36
 ruby-2.3/rake-12.3.1.gem:
   size: 84992
-  object_id: 37c653a3-ce71-4589-7bfa-53268bf7f3ce
   sha: d0dab0b05fcf7ecd11065e16ce74211e4b60c6cd
 ruby-2.3/ruby-2.3.7.tar.gz:
   size: 17859100
-  object_id: ac1d4a98-91cd-49d3-4938-5976d5680027
   sha: 540996fec64984ab6099e34d2f5820b14904f15a
 ruby-2.3/rubygems-2.7.7.tgz:
   size: 915847
-  object_id: 25e0546e-4ff5-4dc7-5746-dfa5b219b9f2
   sha: 2ee981e5e8331071b29e7599f9b45ae2d79ed975
