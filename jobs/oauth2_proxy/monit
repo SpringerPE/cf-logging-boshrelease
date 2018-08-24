@@ -1,6 +1,6 @@
-check process logstash_exporter
-  with pidfile /var/vcap/sys/run/logstash_exporter/logstash_exporter.pid
-  start program "/var/vcap/jobs/logstash_exporter/bin/ctl start"
-  stop program "/var/vcap/jobs/logstash_exporter/bin/ctl stop"
+check process oauth2_proxy
+  with pidfile /var/vcap/sys/run/oauth2_proxy/oauth2_proxy.pid
+  start program "/var/vcap/jobs/oauth2_proxy/bin/ctl start"
+  stop program "/var/vcap/jobs/oauth2_proxy/bin/ctl stop"
   group vcap
 
