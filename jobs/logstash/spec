@@ -27,12 +27,12 @@ consumes:
   type: elasticsearch
   optional: true
 - name: logstash
-  type: syslog
+  type: peers
   optional: true
 
 provides:
 - name: logstash
-  type: syslog
+  type: peers
   properties:
   - logstash.env
 
@@ -87,7 +87,7 @@ properties:
       TLS key is stored in "${TLS_KEY}" environment variables. See
       "logstash.tls.certificate" to see how to use it.
   logstash.env:
-    description: A hash of environment varibales
+    description: A hash of environment variables
   logstash.jvm.heap_size:
     description: Sets JVM heap size. If not defined it is automatically calculated.
   logstash.jvm.heap_size_pct:
