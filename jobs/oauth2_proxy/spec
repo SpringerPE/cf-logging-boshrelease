@@ -18,6 +18,9 @@ properties:
     default: google
   oauth2_proxy.client_id:
     description: "client id of the service provider"
+  oauth2_proxy.http_address:
+    description: "fmt ip:port or :port where the oauth deamon is running"
+    default: ":80"
   oauth2_proxy.client_secret:
     description: ""
   oauth2_proxy.email_domain:

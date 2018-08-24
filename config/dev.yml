@@ -1,3 +1,4 @@
 ---
 dev_name: cf-logging
-
+blobstore:
+  provider: local

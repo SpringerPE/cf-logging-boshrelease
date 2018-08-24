@@ -19,9 +19,8 @@ case ${1:-help} in
     # Load python library path for dynamic libs
     ldconf "$LD_LIBRARY_PATH"
     (
-        {   
+        {
             setcap 'cap_net_bind_service=+ep' $(readlink -nf $(which oauth2_proxy))
-            
             exec chpst -v -u vcap:vcap oauth2_proxy \
               --http-address="<%= p('oauth2_proxy.http_address') %>" \
               --set-xauthrequest="true" \
