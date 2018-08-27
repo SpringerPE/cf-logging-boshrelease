@@ -8,22 +8,25 @@ set -e # exit immediately if a simple command exits with a non-zero status
 
 # Go to the lua folder
 [ "$#" != "1" ] && echo "Arg <folder> not provided!" && exit 1
-cd "$1"
-# Delete all configuration and recreate it
-rm -f *
+
+pushd "$1"
+  # Delete all configuration and recreate it
+  rm -f *
 
 <% if_p("nginx-lua.lua") do %>
   <% p("nginx-lua.lua", []).each do |program| %>
     <% if program["content"] != nil && program["content"] != '' %>
       <% if program["content"].start_with? '/var/vcap' %>
-# Link to another job/package
-ln -sf "<%= program["content"] %>" "<%= program["name"] %>.lua"
+  # Link to another job/package
+  ln -sf "<%= program["content"] %>" "<%= program["name"] %>.lua"
       <% else %>
-cat <<'LUAP' > "<%= program["name"] %>.lua"
+  cat <<'LUAP' > "<%= program["name"] %>.lua"
 <%= program["content"] %>
 LUAP
       <% end %>
     <% end %>
   <% end %>
 <% end %>
+
+popd
 
