@@ -35,6 +35,9 @@ properties:
   nginx-lua.loglevel:
     description: Error loglevel
     default: error
+  nginx-lua.access_log:
+    description: Enable access_log type
+    example: timed_combined 
   nginx-lua.workers:
     description: Number of worker processes
     default: auto
@@ -86,4 +89,3 @@ properties:
       also available as env variable "${TLS_CRT}".
   nginx-lua.env:
     description: A hash of environment variables
-

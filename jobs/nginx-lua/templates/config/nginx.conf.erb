@@ -1,6 +1,6 @@
 # user vcap;
-daemon off;
-
+daemon on;
+# pid /var/vcap/sys/run/nginx-lua/nginx-lua.pid;
 error_log /var/vcap/sys/log/nginx-lua/error.log <%= p('nginx-lua.loglevel', 'error') %>;
 
 worker_processes <%= p('nginx-lua.workers', 'auto') %>;
@@ -53,6 +53,10 @@ http {
 
     # Log format
     log_format timed_combined '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time $upstream_response_time $pipe';
-
+    <% if_p("nginx-lua.access_log") do |access| %>
+    access_log /var/vcap/sys/log/nginx-lua/access.log <%= p('access') %>;
+    <% end.else do %>
+    access_log off;
+    <% end %>
     include /var/vcap/jobs/nginx-lua/config/sites/*;
 }

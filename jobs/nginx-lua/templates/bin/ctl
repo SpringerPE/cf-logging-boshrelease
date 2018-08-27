@@ -21,23 +21,36 @@ case ${1:-help} in
     pid_guard $PIDFILE $COMPONENT
     # Load python library path for dynamic libs
     ldconf "$LD_LIBRARY_PATH"
-    {
-        setcap 'cap_net_bind_service=+ep' $(readlink -nf $(which nginx))
-        exec chpst -u vcap:vcap nginx -g "pid $PIDFILE;" -c $JOB_DIR/config/nginx.conf
-    } >>$LOG_DIR/$COMPONENT.stdout.log 2>>$LOG_DIR/$COMPONENT.stderr.log
-    echo "$(<${PIDFILE}). Done"
+    (
+        {
+            setcap 'cap_net_bind_service=+ep' $(readlink -nf $(which nginx))
+            exec chpst -u vcap:vcap nginx -g "pid $PIDFILE;" -c $JOB_DIR/config/nginx.conf
+        } >>$LOG_DIR/$COMPONENT.stdout.log 2>>$LOG_DIR/$COMPONENT.stderr.log
+    ) &
+    sleep 3
+    if [ -s "${PIDFILE}" ]
+    then
+        echo "$(<${PIDFILE}). Done"
+    else
+        log "Failed!"
+        echo "Failed!"
+        exit 1
+    fi
     ;;
   stop)
-    echo_log "Stopping $COMPONENT: $(<${PIDFILE}). "
-    kill -QUIT $(<${PIDFILE})
-    sleep 5
-    kill_and_wait $PIDFILE
-    rm -f $PIDFILE
-    echo_log "Done"
+    if [ -s "${PIDFILE}" ]
+    then
+        echo_log "Stopping $COMPONENT: $(<${PIDFILE}). "
+        kill -QUIT $(<${PIDFILE})
+        sleep 5
+        [ -s "${PIDFILE}" ] && kill_and_wait ${PIDFILE} && rm -f ${PIDFILE}
+        echo_log "Done"
+    else
+        echo_log "$COMPONENT already stopped! "
+    fi
     ;;
   *)
     echo "Usage: $0 {start|stop}"
     ;;
 esac
 exit 0
-
