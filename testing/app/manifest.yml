@@ -1,7 +1,9 @@
 ---
 applications:
-- name: logging-test
+- name: log
   memory: 128M
   instances: 1
   routes:
   - route: public.app
+  services:
+  - syslog-drain

@@ -1,6 +1,7 @@
 # import dependencies
 import os
 import sys
+import datetime
 from flask import Flask
 
 # bootstrap the app
@@ -16,18 +17,19 @@ def hello_world():
 
 @app.route("/stdout")
 def stdout():
-	sys.stdout.write("writing to stdout\n")
+	msg="Writing to stdout, %s" % datetime.datetime.now()
+	sys.stdout.write(msg + "\n")
 	sys.stdout.flush()
-	return "Done writing to stdout"
+	return msg
 
 @app.route("/stderr")
 def stderr():
-	sys.stderr.write("writing to error\n")
+	msg="Writing to stderr, %s" % datetime.datetime.now()
+	sys.stderr.write(msg + "\n")
 	sys.stderr.flush()
-	return "Done writing to stderr"
+	return msg
 
 # start the app
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=port)
-
 
