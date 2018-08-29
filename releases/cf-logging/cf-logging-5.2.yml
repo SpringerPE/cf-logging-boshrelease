@@ -1,0 +1,78 @@
+name: cf-logging
+version: "5.2"
+commit_hash: 1e35023
+uncommitted_changes: true
+jobs:
+- name: es_config
+  version: 53952391e70eedd661f7b355137920bcd35cc754
+  fingerprint: 53952391e70eedd661f7b355137920bcd35cc754
+  sha1: 669f8905702597b3c7cee728dd4e79bfce7f1b67
+- name: kibana_config
+  version: 1e417bf2ed49e5e5b5ee33f38b19a867350e2fb7
+  fingerprint: 1e417bf2ed49e5e5b5ee33f38b19a867350e2fb7
+  sha1: 56f1b01c29f5d34d4201ed95b455362509000719
+- name: logstash
+  version: 9c7fd572b213df395e5271b6452c3db62a4c3882
+  fingerprint: 9c7fd572b213df395e5271b6452c3db62a4c3882
+  sha1: 3a083ff925d0a4054dbf3447b706cfb46007b99f
+- name: logstash_exporter
+  version: cfa4d0d8f0064bb4198fcac1240d4c941760515b
+  fingerprint: cfa4d0d8f0064bb4198fcac1240d4c941760515b
+  sha1: eec359be82f19693d9c6fc0b91f4171b166e9cc2
+- name: nginx-lua
+  version: a67c91970f7c23276b76a4930806b32c6c3068a4
+  fingerprint: a67c91970f7c23276b76a4930806b32c6c3068a4
+  sha1: 1aa1f80d43b09fad6e360d1b2e768cc0528cabbb
+- name: oauth2_proxy
+  version: 8fb62c72c496c29ec2bf4450ed689bcda03c1795
+  fingerprint: 8fb62c72c496c29ec2bf4450ed689bcda03c1795
+  sha1: a2b52ff8ce614a6a6965d33127a753aeb42416df
+packages:
+- name: bosh-helpers
+  version: cab3f7d1012fb8d71910fd9b84be7a222ae4bbc3
+  fingerprint: cab3f7d1012fb8d71910fd9b84be7a222ae4bbc3
+  sha1: 8761f0a8793041bc2a7433e7b4303cf37c9b4168
+  dependencies: []
+- name: golang
+  version: 7dbdcf561711646f9efe136e6c75c34f56c58381
+  fingerprint: 7dbdcf561711646f9efe136e6c75c34f56c58381
+  sha1: ff82b06135471590448a68d7a40ada7ec0fbff02
+  dependencies: []
+- name: logstash
+  version: 84d28561615b4691004b8afd82ab74378e7f774d
+  fingerprint: 84d28561615b4691004b8afd82ab74378e7f774d
+  sha1: 53898622778ff85c538d262a3379625f87c818d4
+  dependencies:
+  - openjdk-1.8
+- name: logstash_exporter
+  version: 7dfa18791ef57f54923ccd49c37a4a3ffd4c00cd
+  fingerprint: 7dfa18791ef57f54923ccd49c37a4a3ffd4c00cd
+  sha1: 1ac492917dad4bdd217065dd9c8c1b7482393c72
+  dependencies:
+  - golang
+- name: luajit
+  version: 29f6e0bdf8bad0ee1982e04bf803087b51641523
+  fingerprint: 29f6e0bdf8bad0ee1982e04bf803087b51641523
+  sha1: 286e95c280aedddf777950f830d22f893088a7db
+  dependencies: []
+- name: nginx-lua
+  version: 26593bb26c9a708cfb1d1f794e7ade972adf2a53
+  fingerprint: 26593bb26c9a708cfb1d1f794e7ade972adf2a53
+  sha1: 3e7afab260a605eedfe62122ec7bcd337b5bcaf6
+  dependencies:
+  - luajit
+- name: oauth2_proxy
+  version: c01ac4256539e9008dd61340af711f66efd7f449
+  fingerprint: c01ac4256539e9008dd61340af711f66efd7f449
+  sha1: a65ae081b847c624040ddcb81725827ce81365ee
+  dependencies: []
+- name: openjdk-1.8
+  version: cd1383bc34c662c71b83ae106eb20b10e9fd0afc
+  fingerprint: cd1383bc34c662c71b83ae106eb20b10e9fd0afc
+  sha1: 5531fc6e4e0286fddf5a0cb37647755593de9204
+  dependencies: []
+- name: ruby-2.3
+  version: ec621645850ac8a1fa830e1ee3a0477560957648
+  fingerprint: ec621645850ac8a1fa830e1ee3a0477560957648
+  sha1: 843d18be6cee85c6906207f3ed367c2fa6b828a1
+  dependencies: []
