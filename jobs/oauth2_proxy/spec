@@ -24,8 +24,9 @@ properties:
   oauth2_proxy.client_secret:
     description: ""
   oauth2_proxy.email_domain:
-    description: "domain registered with oauth service provider"
-    example: "yourcompanydomain.com"
+    description: "List of domains registered with oauth service provider"
+    example: "[ yourcompanydomain.com ]"
+    default: [ "*" ]
   oauth2_proxy.cookie_name:
     description: "the name of the cookie that the oauth_proxy creates"
     default: _oauth2_proxy
