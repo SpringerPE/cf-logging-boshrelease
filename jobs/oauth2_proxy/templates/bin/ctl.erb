@@ -26,8 +26,7 @@ case ${1:-help} in
               --set-xauthrequest="true" \
               --request-logging="true" \
               --upstream="<%= p('oauth2_proxy.upstream') %>" \
-              <% p('oauth2_proxy.email_domain', []).each do |email| %>--email-domain="<%= email %>" \
-              <% end %>
+              <% p('oauth2_proxy.email_domain', []).each do |email| %>--email-domain="<%= email %>" \<% end %>
               --cookie-secret="<%= p('oauth2_proxy.cookie_secret') %>" \
               --cookie-refresh="<%= p('oauth2_proxy.cookie_refresh') %>" \
               --cookie-secure="<%= p('oauth2_proxy.cookie_secure') %>" \
@@ -35,7 +34,6 @@ case ${1:-help} in
               --client-secret="<%= p('oauth2_proxy.client_secret') %>" \
               --cookie-name="<%= p('oauth2_proxy.cookie_name') %>" \
               --redirect-url="<%= p('oauth2_proxy.redirect_url') %>"
-
         } >>$LOG_DIR/$COMPONENT.stdout.log \
         2>>$LOG_DIR/$COMPONENT.stderr.log
     ) &
