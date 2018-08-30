@@ -1,0 +1,75 @@
+---
+# Base manifest
+
+name: kibana-sso
+
+releases:
+- name: cf-logging
+  version: latest
+
+stemcells:
+- os: ubuntu-trusty
+  alias: default
+  version: latest
+
+update:
+  canaries: 1
+  canary_watch_time: 30000-600000
+  max_in_flight: 3
+  update_watch_time: 5000-600000
+
+
+kibana-sso-client_id: xxxxxxxxxxxxxxxxxxxxxxxxxxx
+kibana-sso-client_secret: xxxxxxxxxxxxxxxxxxxxxxxxxx
+kibana-sso-cookie_secret: xxxxxxxxxxxxxxxxxxxxxx
+kibana-sso-domains: [ hola.com, example.com ]
+kibana-sso-url: "http://kibana.example.com"
+kibana-sso-upstream: "http://external-kibana.com:8080"
+# "bmdpbng6c2VjcmV0cGFzc3dvcmQ="is a base64 encoded string of my service account 's credentials "nginx:secretpassword"
+kibana-sso-upstream-basic-auth: "Basic bmdpbng6c2VjcmV0cGFzc3dvcmQ="
+
+
+
+instance_groups:
+- azs: [z1, z2, z3]
+  instances: 1
+  stemcell: ubuntu-trusty
+  vm_type: medium
+  jobs:
+  - name: oauth2_proxy
+    release: cf-logging
+  - name: nginx-lua
+    release: cf-logging
+  name: oauth2_proxy
+  networks:
+  - name: default
+  properties:
+    oauth2_proxy:
+      client_id: "((kibana-sso-client_id))"
+      client_secret: "((kibana-sso-client_secret))"
+      cookie_name: "_oauth2_proxy_kibana"
+      cookie_refresh: "1h"
+      cookie_secret: "((kibana-sso-cookie_secret))"
+      email_domain: ((kibana-sso-domains))
+      http_address: "0.0.0.0:80"
+      redirect_url: "((kibana-sso-url))/oauth2/callback"
+      upstream: "http://127.0.0.1:9090"
+    nginx-lua:
+      sites:
+      - name: "kibana-proxy"
+        config: |
+          server {
+            listen 127.0.0.1:9090;
+            location / {
+              # The location of our Kibana server (this is default)
+              proxy_pass ((kibana-sso-upstream));
+              # Send a Basic auth header to Kibana on every request to get past the log - in UI.
+              # "bmdpbng6c2VjcmV0cGFzc3dvcmQ="is a base64 encoded string of my service account 's credentials "nginx:secretpassword"
+              proxy_set_header Authorization "((kibana-sso-upstream-basic-auth))";
+              # Also submit the 'es-security-runas-user'header on every request with a value of X - Forwarded - User sent from the downstream oauth2_proxy.
+              # X-Forwarded-User would be 'user1' if the Google account was user1 @elastic.co
+              proxy_set_header es-security-runas-user $http_x_forwarded_user;
+              # Simple rewrite to get us back to oauth2_proxy 's login page if someone uses Kibana's Logout button.
+              rewrite ^/logout$ ((kibana-sso-url))/oauth2/sign_in redirect;
+            }
+          }
