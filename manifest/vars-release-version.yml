@@ -1,4 +1,4 @@
-releases:
+release:
 - name: cf-logging
   url: https://github.com/SpringerPE/cf-logging-boshrelease/releases/download/v5.2/cf-logging-5.2.tgz
   version: 5.2
