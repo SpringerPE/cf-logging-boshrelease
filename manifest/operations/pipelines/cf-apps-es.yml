@@ -642,7 +642,8 @@
               #    tags => []
               #    add_field => { "_index_name" => "syslog" }
               #}
-          }        output-10-es: |
+          }
+        output-10-es: |
           output {
             elasticsearch {
               # DS_HOSTS is default from elasticsearch_master property
