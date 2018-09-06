@@ -8,3 +8,10 @@
   path: /instance_groups/name=logstash/properties/logstash/env/STATSD_PORT?
   value:
     "((statsd_port))"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/plugins?/-
+  value:
+    {name: logstash-output-statsd, version: 3.2.0}
+
+
