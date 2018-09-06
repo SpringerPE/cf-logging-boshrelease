@@ -208,7 +208,8 @@
                   }
               }
             }
-          }        filter-20-set-metadata-index: |
+          }
+        filter-20-set-metadata-index: |
           ##---------
           # Set index
           ##---------
@@ -643,6 +644,7 @@
               #    add_field => { "_index_name" => "syslog" }
               #}
           }
+          
         output-10-es: |
           output {
             elasticsearch {
