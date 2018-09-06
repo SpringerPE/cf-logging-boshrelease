@@ -1,0 +1,10 @@
+---
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/STATSD_HOST?
+  value:
+    "((statsd_host))
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/STATSD_PORT?
+  value:
+    "((statsd_port))"
