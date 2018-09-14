@@ -1,0 +1,44 @@
+---
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_SAME_MESSAGE_BEFORE_COUNT?
+  value:
+    "((throttle_same_message_before_count))"
+
+- type: replace
+  path: /instance_groups/name=logstash
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_SAME_MESSAGE_AFTER_COUNT?
+  value:
+    "((throttle_same_message_after_count))"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_SAME_MESSAGE_PERIOD?
+  value:
+    "((throttle_same_message_period))"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_SAME_MESSAGE_MAX_AGE?
+  value:
+    "((throttle_same_message_max_age))"
+    
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_RATE_LIMIT_BEFORE_COUNT?
+  value:
+    "((throttle_rate_limit_before_count))"
+
+- type: replace
+  path: /instance_groups/name=logstash
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_RATE_LIMIT_AFTER_COUNT?
+  value:
+    "((throttle_rate_limit_after_count))"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_RATE_LIMIT_PERIOD?
+  value:
+    "((throttle_rate_limit_period))"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_RATE_LIMIT_MAX_AGE?
+  value:
+    "((throttle_rate_limit_max_age))"
