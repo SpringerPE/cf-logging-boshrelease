@@ -717,7 +717,6 @@
                 id => "output-statsd/${JOB_FULL_AZ_DEPLOYMENT}"
               }
               if [@generator] == "APP" {
-                  stdout { codec => rubydebug }
                   statsd {
                     host => "${STATSD_HOST}"
                     port => "${STATSD_PORT}"

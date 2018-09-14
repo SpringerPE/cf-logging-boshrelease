@@ -5,8 +5,6 @@
     "((throttle_same_message_before_count))"
 
 - type: replace
-  path: /instance_groups/name=logstash
-- type: replace
   path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_SAME_MESSAGE_AFTER_COUNT?
   value:
     "((throttle_same_message_after_count))"
@@ -26,8 +24,6 @@
   value:
     "((throttle_rate_limit_before_count))"
 
-- type: replace
-  path: /instance_groups/name=logstash
 - type: replace
   path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_RATE_LIMIT_AFTER_COUNT?
   value:
