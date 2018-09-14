@@ -20,7 +20,7 @@
   path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_SAME_MESSAGE_MAX_AGE?
   value:
     "((throttle_same_message_max_age))"
-    
+
 - type: replace
   path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_RATE_LIMIT_BEFORE_COUNT?
   value:
@@ -42,3 +42,14 @@
   path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_RATE_LIMIT_MAX_AGE?
   value:
     "((throttle_rate_limit_max_age))"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_SAME_MESSAGE_DROP_PERCENTAGE?
+  value:
+    "((throttle_same_message_drop_percentage))"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env?/THROTTLE_RATE_LIMIT_DROP_PERCENTAGE?
+  value:
+    "((throttle_rate_limit_drop_percentage))"
+
