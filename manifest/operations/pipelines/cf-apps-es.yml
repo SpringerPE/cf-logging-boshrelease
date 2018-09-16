@@ -218,11 +218,7 @@
               period => "${THROTTLE_SAME_MESSAGE_PERIOD}"
               max_age => "${THROTTLE_SAME_MESSAGE_MAX_AGE}"
               key => "%{[@cf][app_id]}%{[@message]}"
-              add_tag => ["throttle", "throttled_same_message"]
-            }
-          
-           if "throttle_same_message" in [tags] {
-              drop { percentage => "${THROTTLE_SAME_MESSAGE_DROP_PERCENTAGE}"}
+              add_tag => ["throttled", "throttled_same_message"]
             }
           
             throttle {
@@ -231,14 +227,11 @@
               period => "${THROTTLE_RATE_LIMIT_PERIOD}"
               max_age => "${THROTTLE_RATE_LIMIT_MAX_AGE}"
               key => "%{[@cf][app_id]}"
-              add_tag => ["throttle", "exceed_rate_limit"]
-            }
-          
-           if "throttled" in [tags] {
-              drop { percentage => "${THROTTLE_RATE_LIMIT_DROP_PERCENTAGE}"}
+              add_tag => ["throttled", "exceed_rate_limit"]
             }
           
           }
+          
         filter-20-set-metadata-index: |
           ##---------
           # Set index
@@ -663,44 +656,7 @@
               #}
           }
           
-        output-10-es: |
-          output {
-            elasticsearch {
-              # DS_HOSTS is default from elasticsearch_master property
-              hosts => [ "${DST_HOSTS}" ]
-              user => "${ES_USER}"
-              password => "${ES_PASSWORD}"
-              sniffing => false
-              index => "${ES_INDEX_PREFIX:logs}-%{[@metadata][index]}-%{+YYYY.MM.dd}"
-              http_compression => true
-              manage_template => false
-              id => "output-es/${JOB_FULL_AZ_DEPLOYMENT}"
-            }
-            # stdout { codec => rubydebug }
-          }
-        output-15-custom-stdout: |
-          output {
-          
-            if "throttled" in [tags] {
-                stdout {
-                       codec => line {format => "DROP from Throttled: %{[@cf][app]} %{[@timestamp]} %{[@message]}"}
-                }
-          
-            }  else if "throttle_same_message" in [tags] {
-                stdout {
-                       codec => line {format => "DROP from same message: %{[@cf][app]} %{[@timestamp]} %{[@message]}"
-                }
-                               }
-          
-            }  else {
-                stdout {
-                       codec => line {format => "%{[@cf][app]} %{[@timestamp]} %{[@message]}"}
-                }
-            }
-          
-          }
-          
-        output-20-statsd: |
+        output-10-statsd: |
           output {
             if ([@type] == "LogMessage" and [@input] == "syslog") {
               statsd {
@@ -730,4 +686,65 @@
                   }
               }
             }
+          }
+        output-15-throttle: |
+          output {
+          
+            if "exceed_rate_limit" in [tags] {
+                stdout {
+                       codec => line {format => "DROP from Exceed rate limit: %{[@cf][app]} %{[@timestamp]} %{[@message]}"}
+                }
+                statsd {
+                  host => "${STATSD_HOST}"
+                  port => "${STATSD_PORT}"
+                  protocol => "udp"
+                  namespace => "${DEPLOYMENT_NAME}"
+                  sender => "%{[@cf][api]}"
+                  gauge => { "throttled.%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.exceed_limit" => "+1" }
+               }
+          
+            }  else if "throttle_same_message" in [tags] {
+                stdout { codec => line { format => "DROP from same message: %{[@cf][app]} %{[@timestamp]} %{[@message]}" } }
+                statsd {
+                  host => "${STATSD_HOST}"
+                  port => "${STATSD_PORT}"
+                  protocol => "udp"
+                  namespace => "${DEPLOYMENT_NAME}"
+                  sender => "%{[@cf][api]}"
+                  gauge => {  "throttled.%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.same_message" => "+1" }
+                }
+            }  else {
+                stdout { codec => line { format => "%{[@cf][app]} %{[@timestamp]} %{[@message]}" } }
+                statsd {
+                host => "${STATSD_HOST}"
+                port => "${STATSD_PORT}"
+                protocol => "udp"
+                namespace => "${DEPLOYMENT_NAME}"
+                sender => "%{[@cf][api]}"
+                gauge => { "throttled.%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.not_throttled" => "+1" }
+                }
+              }
+          
+           if "throttled" in [tags] {
+               drop { percentage => "${THROTTLE_RATE_LIMIT_DROP_PERCENTAGE}" }
+           }
+          
+          }
+          
+          
+          
+        output-50-es: |
+          output {
+            elasticsearch {
+              # DS_HOSTS is default from elasticsearch_master property
+              hosts => [ "${DST_HOSTS}" ]
+              user => "${ES_USER}"
+              password => "${ES_PASSWORD}"
+              sniffing => false
+              index => "${ES_INDEX_PREFIX:logs}-%{[@metadata][index]}-%{+YYYY.MM.dd}"
+              http_compression => true
+              manage_template => false
+              id => "output-es/${JOB_FULL_AZ_DEPLOYMENT}"
+            }
+            # stdout { codec => rubydebug }
           }
