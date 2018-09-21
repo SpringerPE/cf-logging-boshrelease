@@ -124,10 +124,21 @@ else
     $BOSH_CLI create-release --force --final --tarball="/tmp/$RELEASE-$$.tgz" --name "$RELEASE" --version "$version"
 fi
 
+# Create a release in Github
+sha1=$($SHA1 "/tmp/$RELEASE-$$.tgz" | cut -d' ' -f1)
+cat <<EOF > manifest/vars-release-version.yml
+releases:
+- name: $RELEASE
+  url: https://github.com/${GITHUB_REPO}/releases/download/v${version}/${RELEASE}-${version}.tgz
+  version: $version
+  sha1: $sha1
+EOF
+
 # Create a new tag and update the changes
 echo "* Commiting git changes ..."
-git add .final_builds releases/$RELEASE/index.yml "releases/$RELEASE/$RELEASE-$version.yml"
+git add .final_builds releases/$RELEASE/index.yml "releases/$RELEASE/$RELEASE-$version.yml" config/blobs.yml manifest/vars-release-version.yml
 git commit -m "$RELEASE v$version Boshrelease"
+git push
 git push --tags
 
 # Create a release in Github
