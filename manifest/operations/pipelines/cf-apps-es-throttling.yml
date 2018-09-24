@@ -1,7 +1,7 @@
 - type: replace
   path: /instance_groups/name=logstash/properties/logstash/conf?/xpack.management.pipeline.id?/-
   value:
-    "cf-apps-es"
+    "cf-apps-es-throttling"
 
 - type: replace
   path: /instance_groups/name=logstash/properties/logstash/env?/DST_HOSTS?
@@ -41,7 +41,7 @@
 - type: replace
   path: /instance_groups/name=logstash/properties/logstash/pipelines?
   value:
-    - name: cf-apps-es
+    - name: cf-apps-es-throttling
       config:
         filter-00-prefiltering: |
           ##-------------
@@ -208,6 +208,36 @@
                   }
               }
             }
+          }
+        filter-15-throttle-logs: |
+          filter {
+          
+           throttle {
+              before_count => "${THROTTLE_SAME_MESSAGE_BEFORE_COUNT}"
+              after_count => "${THROTTLE_SAME_MESSAGE_AFTER_COUNT}"
+              period => "${THROTTLE_SAME_MESSAGE_PERIOD}"
+              max_age => "${THROTTLE_SAME_MESSAGE_MAX_AGE}"
+              key => "%{[@cf][app_id]}%{[@message]}"
+              add_tag => ["throttled", "throttled_same_message"]
+            }
+          
+            throttle {
+              before_count => "${THROTTLE_RATE_LIMIT_BEFORE_COUNT}"
+              after_count => "${THROTTLE_RATE_LIMIT_AFTER_COUNT}"
+              period => "${THROTTLE_RATE_LIMIT_PERIOD}"
+              max_age => "${THROTTLE_RATE_LIMIT_MAX_AGE}"
+              key => "%{[@cf][app_id]}"
+              add_tag => ["throttled", "exceed_rate_limit"]
+            }
+          
+           if "throttled_same_message" in [tags] {
+               drop { percentage => "${THROTTLE_SAME_MESSAGE_DROP_PERCENTAGE}" }
+           }
+          
+           if "exceed_rate_limit" in [tags] {
+               drop { percentage => "${THROTTLE_RATE_LIMIT_DROP_PERCENTAGE}" }
+           }
+          
           }
         filter-20-set-metadata-index: |
           ##---------
@@ -664,6 +694,48 @@
               }
             }
           }
+        output-15-throttle: |
+          output {
+          
+            if "exceed_rate_limit" in [tags] {
+                stdout {
+                       codec => line {format => "DROP from Exceed rate limit: %{[@cf][app]} %{[@timestamp]} %{[@message]}"}
+                }
+                statsd {
+                  host => "${STATSD_HOST}"
+                  port => "${STATSD_PORT}"
+                  protocol => "udp"
+                  namespace => "${DEPLOYMENT_NAME}"
+                  sender => "%{[@cf][api]}"
+                  gauge => { "throttled.%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.exceed_limit" => "+1" }
+               }
+          
+            }  else if "throttled_same_message" in [tags] {
+                stdout { codec => line { format => "DROP from same message: %{[@cf][app]} %{[@timestamp]} %{[@message]}" } }
+                statsd {
+                  host => "${STATSD_HOST}"
+                  port => "${STATSD_PORT}"
+                  protocol => "udp"
+                  namespace => "${DEPLOYMENT_NAME}"
+                  sender => "%{[@cf][api]}"
+                  gauge => {  "throttled.%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.same_message" => "+1" }
+                }
+            }  else {
+                stdout { codec => line { format => "%{[@cf][app]} %{[@timestamp]} %{[@message]}" } }
+                statsd {
+                host => "${STATSD_HOST}"
+                port => "${STATSD_PORT}"
+                protocol => "udp"
+                namespace => "${DEPLOYMENT_NAME}"
+                sender => "%{[@cf][api]}"
+                gauge => { "throttled.%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.not_throttled" => "+1" }
+                }
+              }
+          
+          }
+          
+          
+          
         output-50-es: |
           output {
             elasticsearch {
