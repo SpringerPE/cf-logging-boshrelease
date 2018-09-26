@@ -230,14 +230,6 @@
               add_tag => ["throttled", "exceed_rate_limit"]
             }
           
-           if "throttled_same_message" in [tags] {
-               drop { percentage => "${THROTTLE_SAME_MESSAGE_DROP_PERCENTAGE}" }
-           }
-          
-           if "exceed_rate_limit" in [tags] {
-               drop { percentage => "${THROTTLE_RATE_LIMIT_DROP_PERCENTAGE}" }
-           }
-          
           }
         filter-20-set-metadata-index: |
           ##---------
@@ -665,32 +657,34 @@
           
         output-10-statsd: |
           output {
-            if ([@type] == "LogMessage" and [@input] == "syslog") {
-              statsd {
-                host => "${STATSD_HOST}"
-                port => "${STATSD_PORT}"
-                protocol => "udp"
-                namespace => "${DEPLOYMENT_NAME}"
-                sender => "%{[@cf][api]}"
-                gauge => {
-                  "%{[@cf][org]}" => "+1"
-                  "%{[@cf][org]}.%{[@cf][space]}" => "+1"
-                  "%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}" => "+1"
-                }
-                id => "output-statsd/${JOB_FULL_AZ_DEPLOYMENT}"
-              }
-              if [@generator] == "APP" {
-                  statsd {
-                    host => "${STATSD_HOST}"
-                    port => "${STATSD_PORT}"
-                    protocol => "udp"
-                    namespace => "${DEPLOYMENT_NAME}"
-                    sender => "%{[@cf][api]}"
-                    gauge => {
-                      "%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.%{[@source][src]}" => "+1"
-                    }
-                    id => "output-statsd-stdout-stderr/${JOB_FULL_AZ_DEPLOYMENT}"
+            if "throttled" not in [tags] {
+              if ([@type] == "LogMessage" and [@input] == "syslog") {
+                statsd {
+                  host => "${STATSD_HOST}"
+                  port => "${STATSD_PORT}"
+                  protocol => "udp"
+                  namespace => "${DEPLOYMENT_NAME}"
+                  sender => "%{[@cf][api]}"
+                  gauge => {
+                    "%{[@cf][org]}" => "+1"
+                    "%{[@cf][org]}.%{[@cf][space]}" => "+1"
+                    "%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}" => "+1"
                   }
+                  id => "output-statsd/${JOB_FULL_AZ_DEPLOYMENT}"
+                }
+                if [@generator] == "APP" {
+                    statsd {
+                      host => "${STATSD_HOST}"
+                      port => "${STATSD_PORT}"
+                      protocol => "udp"
+                      namespace => "${DEPLOYMENT_NAME}"
+                      sender => "%{[@cf][api]}"
+                      gauge => {
+                        "%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.%{[@source][src]}" => "+1"
+                      }
+                      id => "output-statsd-stdout-stderr/${JOB_FULL_AZ_DEPLOYMENT}"
+                    }
+                }
               }
             }
           }
@@ -698,9 +692,6 @@
           output {
           
             if "exceed_rate_limit" in [tags] {
-                stdout {
-                       codec => line {format => "DROP from Exceed rate limit: %{[@cf][app]} %{[@timestamp]} %{[@message]}"}
-                }
                 statsd {
                   host => "${STATSD_HOST}"
                   port => "${STATSD_PORT}"
@@ -711,7 +702,6 @@
                }
           
             }  else if "throttled_same_message" in [tags] {
-                stdout { codec => line { format => "DROP from same message: %{[@cf][app]} %{[@timestamp]} %{[@message]}" } }
                 statsd {
                   host => "${STATSD_HOST}"
                   port => "${STATSD_PORT}"
@@ -721,7 +711,6 @@
                   gauge => {  "throttled.%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.same_message" => "+1" }
                 }
             }  else {
-                stdout { codec => line { format => "%{[@cf][app]} %{[@timestamp]} %{[@message]}" } }
                 statsd {
                 host => "${STATSD_HOST}"
                 port => "${STATSD_PORT}"
@@ -738,16 +727,18 @@
           
         output-50-es: |
           output {
-            elasticsearch {
-              # DS_HOSTS is default from elasticsearch_master property
-              hosts => [ "${DST_HOSTS}" ]
-              user => "${ES_USER}"
-              password => "${ES_PASSWORD}"
-              sniffing => false
-              index => "${ES_INDEX_PREFIX:logs}-%{[@metadata][index]}-%{+YYYY.MM.dd}"
-              http_compression => true
-              manage_template => false
-              id => "output-es/${JOB_FULL_AZ_DEPLOYMENT}"
+            if "throttled" not in [tags] {
+              elasticsearch {
+                # DS_HOSTS is default from elasticsearch_master property
+                hosts => [ "${DST_HOSTS}" ]
+                user => "${ES_USER}"
+                password => "${ES_PASSWORD}"
+                sniffing => false
+                index => "${ES_INDEX_PREFIX:logs}-%{[@metadata][index]}-%{+YYYY.MM.dd}"
+                http_compression => true
+                manage_template => false
+                id => "output-es/${JOB_FULL_AZ_DEPLOYMENT}"
+              }
+              # stdout { codec => rubydebug }
             }
-            # stdout { codec => rubydebug }
           }
