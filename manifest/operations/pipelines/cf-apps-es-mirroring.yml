@@ -772,7 +772,7 @@
                 index => "${ES_INDEX_PREFIX:logs}-%{[@metadata][index]}-%{+YYYY.MM.dd}"
                 http_compression => true
                 manage_template => false
-                id => "output-es/${JOB_FULL_AZ_DEPLOYMENT}"
+                id => "output-es-2/${JOB_FULL_AZ_DEPLOYMENT}"
               }
               # stdout { codec => rubydebug }
             }
