@@ -250,15 +250,6 @@
                           "[@metadata][index]" => "cf"
                       }
                   }
-          
-                  # Override @metadata.index
-                  if [@cf][org] {
-                      mutate { replace => { "[@metadata][index]" => "%{[@metadata][index]}-%{[@cf][org]}" } }
-                      if [@cf][space] {
-                          mutate { replace => { "[@metadata][index]" => "%{[@metadata][index]}-%{[@cf][space]}" } }
-                      }
-                      mutate { lowercase => [ "[@metadata][index]" ] }
-                  }
              }
           }
           
