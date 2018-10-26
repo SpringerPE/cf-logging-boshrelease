@@ -477,7 +477,8 @@
         output-10-es: |
           output {
             elasticsearch {
-              hosts => [ "${ES_HOSTS}" ]
+              # DS_HOSTS is default from elasticsearch_master property
+              hosts => [ "${DST_HOSTS}" ]
               user => "${ES_USER}"
               password => "${ES_PASSWORD}"
               sniffing => false
@@ -488,4 +489,3 @@
             }
             # stdout { codec => rubydebug }
           }
-          
