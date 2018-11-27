@@ -1,0 +1,12 @@
+---
+- type: replace
+  path: /name
+  value: ((deployment_name))
+
+- type: replace
+  path: /update/vm_strategy?
+  value: create-swap-delete
+
+- type: replace
+  path: /features?/use_dns_addresses?
+  value: false
