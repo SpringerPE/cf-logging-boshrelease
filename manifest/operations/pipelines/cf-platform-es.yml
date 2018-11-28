@@ -121,31 +121,31 @@
           
           
               # Extract instance metadata from structured data
-              grok {
-                  match => { "syslog5424_host" => "(?<org>[a-zA-Z0-9_-]+)\.(?<space>[a-zA-Z0-9_-]+)\.(?<app>[a-zA-Z0-9_-]+)" }
-                  tag_on_failure => [ "fail/syslog-5424/cf/grok" ]
-                  add_tag => [ "cf" ]
-              }
-              if !("fail/syslog-5424/cf/grok" in [tags]) {
-                  mutate {
-                      rename => {
-                          "org" => "[@cf][org]"
-                          "space" => "[@cf][space]"
-                          "app" => "[@cf][app]"
-                      }
-                      add_field => {
-                          "[@cf][app_id]" => "%{syslog5424_app}"
-                          "[@cf][api]" => "${CF_API:cf}"
-                      }
-                  }
-              }
+              # grok {
+              #     match => { "syslog5424_host" => "(?<org>[a-zA-Z0-9_-]+)\.(?<space>[a-zA-Z0-9_-]+)\.(?<app>[a-zA-Z0-9_-]+)" }
+              #     tag_on_failure => [ "fail/syslog-5424/cf/grok" ]
+              #     add_tag => [ "cf" ]
+              # }
+              # if !("fail/syslog-5424/cf/grok" in [tags]) {
+              #     mutate {
+              #         rename => {
+              #             "org" => "[@cf][org]"
+              #             "space" => "[@cf][space]"
+              #             "app" => "[@cf][app]"
+              #         }
+              #         add_field => {
+              #             "[@cf][app_id]" => "%{syslog5424_app}"
+              #             "[@cf][api]" => "${CF_API:cf}"
+              #         }
+              #     }
+              # }
           
           
               # Extract instance index from proc
-              grok {
-                  match => { "syslog5424_proc" => "\[%{DATA:[@metadata][app_source]}\]" }
-                  tag_on_failure => [ "fail/syslog-5424/proc/grok" ]
-              }
+              # grok {
+              #     match => { "syslog5424_proc" => "\[%{DATA:[@metadata][app_source]}\]" }
+              #     tag_on_failure => [ "fail/syslog-5424/proc/grok" ]
+              # }
               if !("fail/syslog-5424/proc/grok" in [tags]) {
                   mutate {
                       # split the field on /
@@ -176,9 +176,9 @@
                           "@instance" => "%{[@metadata][app_source][-1]}"
                       }
                   }
-                  ruby {
-                      code => 'if event.get("[@metadata][app_source]").length > 2 then event.set("[@source][subtype]", event.get("[@metadata][app_source][1]")) end'
-                  }
+                  # ruby {
+                  #     code => 'if event.get("[@metadata][app_source]").length > 2 then event.set("[@source][subtype]", event.get("[@metadata][app_source][1]")) end'
+                  # }
                   if [syslog5424_pri] == "14" {
                       mutate {
                           replace => { "[@source][src]" => "stdout" }
@@ -221,7 +221,7 @@
               # by default logs go to 'platform'
               mutate {
                   add_field => { "@index_type" => "platform" }
-                  add_field => { "[@metadata][index]" => "%{@index_type}-%{[@source][deployment]}" }
+                  # add_field => { "[@metadata][index]" => "%{@index_type}-%{[@source][deployment]}" }
                   lowercase => [ "[@metadata][index]" ]
               }
           }
