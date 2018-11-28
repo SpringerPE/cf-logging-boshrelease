@@ -46,6 +46,16 @@ add_oper_snippets() {
     "((es-host))"
 
 - type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/ES_USER?
+  value:
+    "((es-user))"
+
+- type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/ES_PASSWORD?
+  value:
+    "((es-password))"
+
+- type: replace
   path: /instance_groups/name=logstash/properties/logstash/env/ES_INDEX_PREFIX?
   value:
     "((es-index_prefix))"
