@@ -9,16 +9,6 @@
     "((es-host))"
 
 - type: replace
-  path: /instance_groups/name=logstash/properties/logstash/env/ES_USER?
-  value:
-    "((es-user))"
-
-- type: replace
-  path: /instance_groups/name=logstash/properties/logstash/env/ES_PASSWORD?
-  value:
-    "((es-password))"
-
-- type: replace
   path: /instance_groups/name=logstash/properties/logstash/env/ES_INDEX_PREFIX?
   value:
     "((es-index_prefix))"
@@ -749,7 +739,7 @@
                 user => "${ES_USER}"
                 password => "${ES_PASSWORD}"
                 sniffing => false
-                index => "${ES_INDEX_PREFIX:logs}-snpaas-%{[@index_level]}-%{+YYYY.MM.dd}"
+                index => "${ES_INDEX_PREFIX:logs}-%{[@index_level]}-%{+YYYY.MM.dd}"
                 http_compression => true
                 manage_template => false
                 id => "output-es/${JOB_FULL_AZ_DEPLOYMENT}"
