@@ -209,6 +209,7 @@
               }
             }
           }
+          
         filter-20-set-metadata-index: |
           ##---------
           # Set index
@@ -284,6 +285,7 @@
           #     }
           # }
           
+          
         filter-63-platform_vcap_and_json_parsing: |
           ##------------------------------------------
           # Vcap conf. Parses vcap* logs. (after UAA!)
@@ -330,7 +332,8 @@
                       }
                   }
               }
-          }        filter-90-set_syslog_level: |
+          }
+        filter-90-set_syslog_level: |
           ##-------------------
           # define syslog level
           ##-------------------
