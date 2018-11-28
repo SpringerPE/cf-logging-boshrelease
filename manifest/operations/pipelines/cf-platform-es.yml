@@ -146,67 +146,67 @@
               #     match => { "syslog5424_proc" => "\[%{DATA:[@metadata][app_source]}\]" }
               #     tag_on_failure => [ "fail/syslog-5424/proc/grok" ]
               # }
-              # if !("fail/syslog-5424/proc/grok" in [tags]) {
-              #     mutate {
-              #         # split the field on /
-              #         split => { "[@metadata][app_source]" => "/" }
-              #         # save the last element of the array as the app_source.
-              #         add_field => {
-              #             "[@source][host]" => "%{syslog5424_host}"
-              #             "[@source][type]" => "%{[@metadata][app_source][0]}"
-              #             "[@source][subtype]" => "none"
-              #             "[@source][src]" => "unknown"
-              #             "[@source][component]" => "${SOURCE_COMPONENT:LogMessage}"
-              #             "[@source][platform]" => "${SOURCE_PLATFORM:cf}"
-              #             "[@source][env]" => "${SOURCE_ENV:cf}"
-              #             "[@source][instance]" => "%{[@metadata][app_source][-1]}"
-              #             "[@source][shipper]" => "${SOURCE_SHIPPER:syslog}"
+              if !("fail/syslog-5424/proc/grok" in [tags]) {
+                  mutate {
+                      # split the field on /
+                      split => { "[@metadata][app_source]" => "/" }
+                      # save the last element of the array as the app_source.
+                      add_field => {
+                          "[@source][host]" => "%{syslog5424_host}"
+                          "[@source][type]" => "%{[@metadata][app_source][0]}"
+                          "[@source][subtype]" => "none"
+                          "[@source][src]" => "unknown"
+                          "[@source][component]" => "${SOURCE_COMPONENT:LogMessage}"
+                          "[@source][platform]" => "${SOURCE_PLATFORM:cf}"
+                          "[@source][env]" => "${SOURCE_ENV:cf}"
+                          "[@source][instance]" => "%{[@metadata][app_source][-1]}"
+                          "[@source][shipper]" => "${SOURCE_SHIPPER:syslog}"
           
-              #             "[@shipper][proto]" => "%{@input}"
-              #             "[@shipper][code]" => "%{syslog_code}"
-              #             "[@shipper][version]" => "%{syslog5424_ver}"
-              #             "[@shipper][facility]" => "%{syslog_facility_code}"
-              #             "[@shipper][priority]" => "%{syslog5424_pri}"
-              #             "[@shipper][severity]" => "%{syslog_severity_code}"
-              #             "[@shipper][name]" => "${SOURCE_SHIPPER:syslog}"
-              #             "[@shipper][type]" => "%{[@metadata][app_source]}"
-              #             "[@shipper][host]" => "%{[syslog5424_host]}"
+                          "[@shipper][proto]" => "%{@input}"
+                          "[@shipper][code]" => "%{syslog_code}"
+                          "[@shipper][version]" => "%{syslog5424_ver}"
+                          "[@shipper][facility]" => "%{syslog_facility_code}"
+                          "[@shipper][priority]" => "%{syslog5424_pri}"
+                          "[@shipper][severity]" => "%{syslog_severity_code}"
+                          "[@shipper][name]" => "${SOURCE_SHIPPER:syslog}"
+                          "[@shipper][type]" => "%{[@metadata][app_source]}"
+                          "[@shipper][host]" => "%{[syslog5424_host]}"
           
-              #             "@generator" => "%{[@metadata][app_source][0]}"
-              #             "@instance" => "%{[@metadata][app_source][-1]}"
-              #         }
-              #     }
-              #     # ruby {
-              #     #     code => 'if event.get("[@metadata][app_source]").length > 2 then event.set("[@source][subtype]", event.get("[@metadata][app_source][1]")) end'
-              #     # }
-              #     if [syslog5424_pri] == "14" {
-              #         mutate {
-              #             replace => { "[@source][src]" => "stdout" }
-              #             add_tag => [ "stdout" ]
-              #         }
-              #     } else if [syslog5424_pri] == "11" {
-              #         mutate {
-              #             replace => { "[@source][src]" => "stderr" }
-              #             add_tag => [ "stderr" ]
-              #         }
-              #     }
-              #     mutate {
-              #         convert => {
-              #             "[@source][instance]" => "integer"
-              #             "@instance" => "integer"
-              #         }
-              #         lowercase => [ "[@source][type]", "[@source][subtype]", "[@source][component]" ]
-              #         split => { "[@shipper][type]" => "," }
-              #         convert => {
-              #             "[@shipper][version]" => "integer"
-              #             "[@shipper][facility]" => "integer"
-              #             "[@shipper][code]" => "integer"
-              #             "[@shipper][priority]" => "integer"
-              #             "[@shipper][severity]" => "integer"
-              #         }
-              #         remove_field => [ "syslog5424_ver", "syslog5424_pri", "syslog5424_proc", "syslog5424_app", "syslog5424_host", "syslog_code" ]
-              #     }
-              # }
+                          "@generator" => "%{[@metadata][app_source][0]}"
+                          "@instance" => "%{[@metadata][app_source][-1]}"
+                      }
+                  }
+                  # ruby {
+                  #     code => 'if event.get("[@metadata][app_source]").length > 2 then event.set("[@source][subtype]", event.get("[@metadata][app_source][1]")) end'
+                  # }
+                  if [syslog5424_pri] == "14" {
+                      mutate {
+                          replace => { "[@source][src]" => "stdout" }
+                          add_tag => [ "stdout" ]
+                      }
+                  } else if [syslog5424_pri] == "11" {
+                      mutate {
+                          replace => { "[@source][src]" => "stderr" }
+                          add_tag => [ "stderr" ]
+                      }
+                  }
+                  mutate {
+                      convert => {
+                          "[@source][instance]" => "integer"
+                          "@instance" => "integer"
+                      }
+                      lowercase => [ "[@source][type]", "[@source][subtype]", "[@source][component]" ]
+                      split => { "[@shipper][type]" => "," }
+                      convert => {
+                          "[@shipper][version]" => "integer"
+                          "[@shipper][facility]" => "integer"
+                          "[@shipper][code]" => "integer"
+                          "[@shipper][priority]" => "integer"
+                          "[@shipper][severity]" => "integer"
+                      }
+                      remove_field => [ "syslog5424_ver", "syslog5424_pri", "syslog5424_proc", "syslog5424_app", "syslog5424_host", "syslog_code" ]
+                  }
+              }
             }
           }
         filter-20-set-metadata-index: |
@@ -290,39 +290,47 @@
           ##------------------------------------------
           
           filter {
-                # Parse Cloud Foundry logs
-                if [@message] =~ /^\s*{".*}\s*$/ { # looks like JSON
-                    # parse JSON message
-                    json {
-                      source => "@message"
-                      target => "parsed_json_field"
-                      remove_field => [ "@message" ]
-                      add_field => { "parsed_json_field_name" => "%{[@source][component]}"}
-                    }
-                    if "_jsonparsefailure" in [tags] {
-                        # Amend the failure tag to match our fail/${addon}/${filter}/${detail} standard
-                        mutate {
-                          add_tag => ["fail/cloudfoundry/platform-vcap/json"]
-                          remove_tag => ["_jsonparsefailure"]
-                        }
-                    } else {
-                        mutate {
-                          rename => { "[parsed_json_field][message]" => "@message" } # @message
-                        }
-                        # @level
-                        translate {
-                          field => "[parsed_json_field][log_level]"
-                          dictionary => [ "0", "DEBUG", "1", "INFO", "2", "ERROR", "3", "FATAL" ]
-                          destination => "@level"
-                          override => true
-                          fallback => "%{[parsed_json_field][log_level]}"
-                          remove_field => "[parsed_json_field][log_level]"
-                        }
-                    }
+              if [@source][component] =~ /vcap\..*/ {
+                  # minus vcap. prefix
+                  mutate {
+                    gsub => ["[@source][component]", "^vcap\.", ""]
+                  }
+                  mutate {
+                    replace => { "@type" => "vcap" }
+                    add_tag => "vcap"
+                  }
+                  # Parse Cloud Foundry logs
+                  if [@message] =~ /^\s*{".*}\s*$/ { # looks like JSON
+                      # parse JSON message
+                      json {
+                        source => "@message"
+                        target => "parsed_json_field"
+                        remove_field => [ "@message" ]
+                        add_field => { "parsed_json_field_name" => "%{[@source][component]}"}
+                      }
+                      if "_jsonparsefailure" in [tags] {
+                          # Amend the failure tag to match our fail/${addon}/${filter}/${detail} standard
+                          mutate {
+                            add_tag => ["fail/cloudfoundry/platform-vcap/json"]
+                            remove_tag => ["_jsonparsefailure"]
+                          }
+                      } else {
+                          mutate {
+                            rename => { "[parsed_json_field][message]" => "@message" } # @message
+                          }
+                          # @level
+                          translate {
+                            field => "[parsed_json_field][log_level]"
+                            dictionary => [ "0", "DEBUG", "1", "INFO", "2", "ERROR", "3", "FATAL" ]
+                            destination => "@level"
+                            override => true
+                            fallback => "%{[parsed_json_field][log_level]}"
+                            remove_field => "[parsed_json_field][log_level]"
+                          }
+                      }
+                  }
               }
-          }
-          
-        filter-90-set_syslog_level: |
+          }        filter-90-set_syslog_level: |
           ##-------------------
           # define syslog level
           ##-------------------
