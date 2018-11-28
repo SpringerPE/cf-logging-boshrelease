@@ -347,72 +347,72 @@
           }
           
         filter-91-rework_fields: |
-          ##-------------
-          # Rework fields
-          ##-------------
+          # ##-------------
+          # # Rework fields
+          # ##-------------
           
-          filter{
-              if [@source][job] and [@source][index] {
-                  mutate {
-                      add_field => { "[@source][vm]" => "%{[@source][job]}/%{[@source][index]}" }
-                  }
-              }
+          # filter{
+          #     if [@source][job] and [@source][index] {
+          #         mutate {
+          #             add_field => { "[@source][vm]" => "%{[@source][job]}/%{[@source][index]}" }
+          #         }
+          #     }
           
-              if ![@source][host] {
-                  mutate { rename => { "[host]" => "[@source][host]" } }
-              }
+          #     if ![@source][host] {
+          #         mutate { rename => { "[host]" => "[@source][host]" } }
+          #     }
           
-              # Downcase [parsed_json_field_name] and replace special characters with '_')..
-              # .. and rename dynamic [parsed_json_field] field to this calculated name.
+          #     # Downcase [parsed_json_field_name] and replace special characters with '_')..
+          #     # .. and rename dynamic [parsed_json_field] field to this calculated name.
           
-              if [parsed_json_field] and [parsed_json_field_name] {
-                  mutate {
-                      lowercase => [ "parsed_json_field_name" ]
-                      gsub => [ "parsed_json_field_name", "[\s/\\?#-\.]", "_" ]
-                  }
-                  mutate {
-                      rename => { "parsed_json_field" => "%{parsed_json_field_name}" }
-                  }
-              }
+          #     if [parsed_json_field] and [parsed_json_field_name] {
+          #         mutate {
+          #             lowercase => [ "parsed_json_field_name" ]
+          #             gsub => [ "parsed_json_field_name", "[\s/\\?#-\.]", "_" ]
+          #         }
+          #         mutate {
+          #             rename => { "parsed_json_field" => "%{parsed_json_field_name}" }
+          #         }
+          #     }
           
-              mutate {
-                  remove_field => [ "parsed_json_field_name" ]
-              }
-          }
+          #     mutate {
+          #         remove_field => [ "parsed_json_field_name" ]
+          #     }
+          # }
           
         filter-99-cleanup: |
           ##--------------------------
           # Cleanup unnecessary fields
           ##--------------------------
           
-          filter {
-              mutate {
-                  # Remove syslog_ fields
-                  remove_field => "syslog5424_pri"
-                  remove_field => "syslog5424_ts"
-                  remove_field => "syslog5424_host"
-                  remove_field => "syslog5424_ver"
-                  remove_field => "syslog5424_app"
-                  remove_field => "syslog5424_proc"
-                  remove_field => "syslog_sd_params"
-                  remove_field => "syslog_facility"
-                  remove_field => "syslog_facility_code"
-                  remove_field => "syslog_severity"
-                  remove_field => "syslog_severity_code"
+          # filter {
+          #     mutate {
+          #         # Remove syslog_ fields
+          #         remove_field => "syslog5424_pri"
+          #         remove_field => "syslog5424_ts"
+          #         remove_field => "syslog5424_host"
+          #         remove_field => "syslog5424_ver"
+          #         remove_field => "syslog5424_app"
+          #         remove_field => "syslog5424_proc"
+          #         remove_field => "syslog_sd_params"
+          #         remove_field => "syslog_facility"
+          #         remove_field => "syslog_facility_code"
+          #         remove_field => "syslog_severity"
+          #         remove_field => "syslog_severity_code"
           
-                  # Cleanup
-                  remove_field => "@version"
-                  remove_field => "host"
-                  remove_field => "port"
-                  remove_field => "_logstash_input"
-              }
-          }
+          #         # Cleanup
+          #         remove_field => "@version"
+          #         remove_field => "host"
+          #         remove_field => "port"
+          #         remove_field => "_logstash_input"
+          #     }
+          # }
           
           
         input-10-syslog: |
           input {
               tcp {
-                add_field => [ "type", "syslog" ]
+                add_field => [ "@input", "syslog" ]
                 id => "input-syslog/${JOB_FULL_AZ_DEPLOYMENT}"
                 port => "5514"
               }
