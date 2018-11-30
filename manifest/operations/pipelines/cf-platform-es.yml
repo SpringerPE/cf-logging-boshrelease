@@ -87,7 +87,7 @@
               # Manually parse the log for RFC5424
               grok {
                 break_on_match => true
-                match => { "@raw" => "%{SYSLOG5424LINE}" }
+                match => { "@message" => "%{SYSLOG5424LINE}" }
               }
           
               if [syslog5424_ts] {
