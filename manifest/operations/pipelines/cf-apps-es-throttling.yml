@@ -24,6 +24,11 @@
     "((es-index_prefix))"
 
 - type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/ES_VERSION?
+  value:
+    "((es-version))"
+
+- type: replace
   path: /instance_groups/name=logstash/properties/logstash/env/CF_API?
   value:
     "((cf-api))"
@@ -749,7 +754,7 @@
                 user => "${ES_USER}"
                 password => "${ES_PASSWORD}"
                 sniffing => false
-                index => "${ES_INDEX_PREFIX:logs}-%{[@index_level]}-%{+YYYY.MM.dd}"
+                index => "${ES_INDEX_PREFIX:logs}-%{[@index_level]}-${ES_VERSION:v0.0}-%{+YYYY.MM.dd}"
                 http_compression => true
                 manage_template => false
                 id => "output-es/${JOB_FULL_AZ_DEPLOYMENT}"

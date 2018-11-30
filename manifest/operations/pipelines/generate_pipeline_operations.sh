@@ -61,6 +61,11 @@ add_oper_snippets() {
     "((es-index_prefix))"
 
 - type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/ES_VERSION?
+  value:
+    "((es-version))"
+
+- type: replace
   path: /instance_groups/name=logstash/properties/logstash/env/CF_API?
   value:
     "((cf-api))"
