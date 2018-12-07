@@ -5,7 +5,7 @@
 
 - type: replace
   path: /update/vm_strategy?
-  value: create-swap-delete
+  value: delete-create
 
 - type: replace
   path: /features?/use_dns_addresses?
