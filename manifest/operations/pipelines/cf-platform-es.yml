@@ -24,6 +24,11 @@
     "((es-index_prefix))"
 
 - type: replace
+  path: /instance_groups/name=logstash/properties/logstash/env/ES_VERSION?
+  value:
+    "((es-version))"
+
+- type: replace
   path: /instance_groups/name=logstash/properties/logstash/env/CF_API?
   value:
     "((cf-api))"
@@ -84,46 +89,48 @@
           }
         filter-10-syslog_rfc5424_parsing: |
           filter {
-              # Manually parse the log for RFC5424
+              # Parse RFC5424 syslog messages
               grok {
                 break_on_match => true
-                match => { "@message" => "%{SYSLOG5424LINE}" }
+                match => {
+                  "@message" => [
+                    "%{SYSLOG5424LINE}",
+                    "%{SYSLOG5424BASE}"
+                    ]
+                  }
               }
           
-              if [syslog5424_ts] {
-                # Handle RFC5424 formatted Syslog messages
-                mutate {
-                  remove_field => [ "message", "host" ]
-                  add_tag => [ "syslog5424" ]
-                }
-                mutate {
-                  # Use a friendlier naming scheme
-                  rename => {
-                    "syslog5424_app"  => "program"
-                    "syslog5424_msg"  => "message"
-                    "syslog5424_host" => "host"
-                  }
-                  remove_field => [ "syslog5424_ver", "syslog5424_proc" ]
-                }
+              mutate {
+                remove_field => [ "message", "host" ]
+                add_tag => [ "syslog5424" ]
+              }
           
-                if [syslog5424_sd] {
-                  # All structured data needs to be in format [key=value,key=value,...]
-                  mutate {
-                    # Remove wrapping brackets
-                    gsub => [ "syslog5424_sd", "[\[\]]", "" ]
-                  }
-                  kv {
-                    # Convert the structured data into Logstash fields
-                    source => "syslog5424_sd"
-                    field_split => ","
-                    value_split => "="
-                    remove_field => [ "syslog5424_sd" ]
-                  }
+              mutate {
+                # Use a friendlier naming scheme
+                rename => {
+                  "syslog5424_app"  => "program"
+                  "syslog5424_msg" => "message"
+                  "syslog5424_host" => "host"
+                  "syslog5424_pri" => "priority"
                 }
-                date {
-                  match => [ "syslog5424_ts", "ISO8601" ]
-                  remove_field => [ "syslog5424_ts", "timestamp" ]
+                remove_field => [ "syslog5424_ver", "syslog5424_proc" ]
+              }
+          
+              # Parsing structured data being part of the syslog message.
+              # Example: "[instance@47450 director="" deployment="cf" group="api" az="z1" id="9b5c1d3c-a2fe-45b0-906e-fa88af93fd4a"]"
+              if [syslog5424_sd] {
+                kv {
+                  # Convert the structured data into fields
+                  source => "syslog5424_sd"
+                  prefix => "sd_"
+                  remove_field => [ "syslog5424_sd" ]
+                  trim_key => "\["
+                  trim_value => "\]"
                 }
+              }
+              date {
+                match => [ "syslog5424_ts", "ISO8601" ]
+                remove_field => [ "syslog5424_ts", "timestamp" ]
               }
           }
         input-10-syslog: |
