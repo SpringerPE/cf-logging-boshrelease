@@ -63,7 +63,7 @@
               }
           
               # Drop empty useless logs
-              if [message] =~ /^\s*$/ or [message] =~ /^#.*$/ {
+              if [message] =~ /^\s*$/ {
                   drop { }
               }
           
