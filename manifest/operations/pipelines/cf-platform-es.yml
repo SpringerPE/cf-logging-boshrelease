@@ -116,18 +116,40 @@
                 remove_field => [ "syslog5424_ver", "syslog5424_proc" ]
               }
           
+              # Parse JSON from message field
+              json {
+                skip_on_invalid_json => true  # only parse if the field actually contains JSON
+                source => "message"
+                target => "json_message"
+                add_tag => [ "json_message" ]
+                remove_field => "message"
+              }
+          
+              if "json_message" in [tags] {
+                mutate {
+                  rename => [ "[json_message][message]", "message" ]
+                }
+          
+                date {
+                  match => [ "[json_message][timestamp]", "UNIX" ]
+                  target => "@timestamp_json"
+                  remove_field => "[json_message][timestamp]"
+                }
+              }
+          
               # Parsing structured data being part of the syslog message.
               # Example: "[instance@47450 director="" deployment="cf" group="api" az="z1" id="9b5c1d3c-a2fe-45b0-906e-fa88af93fd4a"]"
               if [syslog5424_sd] {
                 kv {
                   # Convert the structured data into fields
                   source => "syslog5424_sd"
-                  prefix => "sd_"
+                  target => "sd"
                   remove_field => [ "syslog5424_sd" ]
                   trim_key => "\["
                   trim_value => "\]"
                 }
               }
+          
               date {
                 match => [ "syslog5424_ts", "ISO8601" ]
                 remove_field => [ "syslog5424_ts", "timestamp" ]
