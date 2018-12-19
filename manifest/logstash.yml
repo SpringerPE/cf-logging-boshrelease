@@ -25,6 +25,8 @@ instance_groups:
     release: cf-logging
   properties:
     logstash:
+      jvm:
+        heap_size_pct: 75
       pipelines:
       - name: test
         config: "input { generator {} } filter { sleep { time => 1 } } output { stdout { codec => dots } }"
