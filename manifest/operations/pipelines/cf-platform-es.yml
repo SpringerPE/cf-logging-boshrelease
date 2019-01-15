@@ -120,9 +120,12 @@
               json {
                 skip_on_invalid_json => true  # only parse if the field actually contains JSON
                 source => "message"
-                target => "json_message"
+                target => "replace_me"  # this value will be replaced with the value of the 'program' field in the next block
                 add_tag => [ "json_message" ]
                 remove_field => "message"
+              }
+              mutate {
+                rename => { "replace_me" => "%{program}" }
               }
           
               if "json_message" in [tags] {
@@ -149,7 +152,6 @@
                   trim_value => "\]"
                 }
               }
-          
               date {
                 match => [ "syslog5424_ts", "ISO8601" ]
                 remove_field => [ "syslog5424_ts", "timestamp" ]
