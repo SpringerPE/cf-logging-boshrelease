@@ -1,7 +1,7 @@
 - type: replace
   path: /instance_groups/name=logstash/properties/logstash/conf?/xpack.management.pipeline.id?/-
   value:
-    "cf-apps-es-throttling"
+    "cf-apps-es"
 
 - type: replace
   path: /instance_groups/name=logstash/properties/logstash/env?/DST_HOSTS?
@@ -46,7 +46,7 @@
 - type: replace
   path: /instance_groups/name=logstash/properties/logstash/pipelines?
   value:
-    - name: cf-apps-es-throttling
+    - name: cf-apps-es
       config:
         filter-00-prefiltering: |
           ##-------------
