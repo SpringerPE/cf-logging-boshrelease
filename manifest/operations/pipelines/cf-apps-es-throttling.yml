@@ -214,29 +214,6 @@
               }
             }
           }
-        filter-15-throttle-logs: |
-          filter {
-           if [@generator] == "APP" {
-            throttle {
-                before_count => "${THROTTLE_SAME_MESSAGE_BEFORE_COUNT}"
-                after_count => "${THROTTLE_SAME_MESSAGE_AFTER_COUNT}"
-                period => "${THROTTLE_SAME_MESSAGE_PERIOD}"
-                max_age => "${THROTTLE_SAME_MESSAGE_MAX_AGE}"
-                key => "%{[@cf][app_id]}%{[@message]}"
-                add_tag => ["throttled", "throttled_same_message"]
-              }
-            }
-          
-            throttle {
-              before_count => "${THROTTLE_RATE_LIMIT_BEFORE_COUNT}"
-              after_count => "${THROTTLE_RATE_LIMIT_AFTER_COUNT}"
-              period => "${THROTTLE_RATE_LIMIT_PERIOD}"
-              max_age => "${THROTTLE_RATE_LIMIT_MAX_AGE}"
-              key => "%{[@cf][app_id]}"
-              add_tag => ["throttled", "exceed_rate_limit"]
-            }
-          
-          }
         filter-20-set-metadata-index: |
           ##---------
           # Set index
@@ -246,15 +223,12 @@
           # [@metadata][index] stores full index prefix (for app logs additionally includes org and space name)
           
           filter {
-              # by default logs go to 'apps'
-              if "throttled" not in [tags] {
-                  mutate {
-                      add_field => {
-                          "@index_type" => "app"
-                          "[@metadata][index]" => "cf"
-                      }
-                  }
-             }
+          		mutate {
+          		    add_field => {
+          		        "@index_type" => "app"
+          		        "[@metadata][index]" => "cf"
+          		    }
+          		}
           }
           
         filter-50-rtr-logmessages: |
@@ -263,84 +237,84 @@
           ##----------------
           
           filter {
-              if "throttled" not in [tags] {
-                if ([@type] == "LogMessage" and [@source][type] == "rtr") {
           
+            if ([@type] == "LogMessage" and [@source][type] == "rtr") {
+          
+                mutate {
+                    add_tag => [ "rtr" ]
+                }
+          
+                grok {
+                  match => { "@message" => "%{HOSTNAME:[rtr][hostname]} - \[(?<rtr_time>%{YEAR}-%{MONTHNUM}-%{MONTHDAY}T%{TIME}+%{INT})\] \"%{WORD:[rtr][verb]} %{URIPATHPARAM:[rtr][path]} %{PROG:[rtr][http_spec]}\" %{BASE10NUM:[rtr][status]:int} %{BASE10NUM:[rtr][request_bytes_received]:int} %{BASE10NUM:[rtr][body_bytes_sent]:int} \"%{GREEDYDATA:[rtr][referer]}\" \"%{GREEDYDATA:[rtr][http_user_agent]}\" \"%{IPORHOST:[rtr][src][host]}:%{POSINT:[rtr][src][port]:int}\" \"%{IPORHOST:[rtr][dst][host]}:%{POSINT:[rtr][dst][port]:int}\" x_forwarded_for:\"%{GREEDYDATA:[rtr][x_forwarded_for]}\" x_forwarded_proto:\"%{GREEDYDATA:[rtr][x_forwarded_proto]}\" vcap_request_id:\"%{NOTSPACE:[rtr][vcap_request_id]}\" response_time:%{NUMBER:[rtr][response_time_sec]:float} app_id:\"%{NOTSPACE:[rtr][app][id]}\" app_index:\"%{BASE10NUM:[rtr][app][index]:int}\" %{GREEDYDATA:[@metadata][rtr_extra]}" }
+                  tag_on_failure => [ "fail/cloudfoundry/logMessage/rtr/grok" ]
+                }
+          
+                if !("fail/cloudfoundry/logMessage/rtr/grok" in [tags]) {
+                    # Set [rtr][timestamp]
                     mutate {
-                        add_tag => [ "rtr" ]
+                      rename => { "rtr_time" => "[rtr][timestamp]" }
                     }
+                    # Set [rtr][x_forwarded_for]
+                    mutate {
+                        gsub => ["[rtr][x_forwarded_for]","[\s\"]",""]  # remove quotes and whitespace
+                        split => ["[rtr][x_forwarded_for]", ","]        # format is client, proxy1, proxy2 ...
+                    }
+                    # Set [rtr][remote_addr]
+                    mutate {
+                      add_field => ["[rtr][remote_addr]", "%{[rtr][x_forwarded_for][0]}"]
+                    }
+                    if [rtr][remote_addr] =~ /([0-9]{1,3}\.){3}[0-9]{1,3}/ {
+                        geoip {
+                          source => "[rtr][remote_addr]"
+                        }
+                    }
+                    # Set [rtr][response_time_ms]
+                    mutate {
+                      add_field => { "[rtr][response_time_ms]" => "%{[rtr][response_time_sec]}000" }
+                    }
+                    mutate {
+                      gsub => ["[rtr][response_time_ms]", "\.(\d)(\d)(\d)([\d]{0,3}).*","\1\2\3.\4"]
+                    }
+                    mutate {
+                      convert => { "[rtr][response_time_ms]" => "float" }
+                    }
+                    # Set @message
+                    mutate {
+                      replace => {"@message" => "%{[rtr][status]} %{[rtr][verb]} %{[rtr][path]} (%{[rtr][response_time_ms]} ms)"}
+                    }
+                    # Parsing extra headers like zipkin ...
+                    kv {
+                      source => "[@metadata][rtr_extra]"
+                      target => "[rtr][extra]"
+                      value_split => ":\\\""
+                      trim_value => "\\""
+                    }
+                    if [rtr][status] >= 400 {
+                        mutate {
+                          replace => { "@level" => "ERROR" }
+                        }
+                    } else {
+                        mutate {
+                          replace => { "@level" => "INFO" }
+                        }
+                    }
+                }
+            }
           
-                    grok {
-                      match => { "@message" => "%{HOSTNAME:[rtr][hostname]} - \[(?<rtr_time>%{YEAR}-%{MONTHNUM}-%{MONTHDAY}T%{TIME}+%{INT})\] \"%{WORD:[rtr][verb]} %{URIPATHPARAM:[rtr][path]} %{PROG:[rtr][http_spec]}\" %{BASE10NUM:[rtr][status]:int} %{BASE10NUM:[rtr][request_bytes_received]:int} %{BASE10NUM:[rtr][body_bytes_sent]:int} \"%{GREEDYDATA:[rtr][referer]}\" \"%{GREEDYDATA:[rtr][http_user_agent]}\" \"%{IPORHOST:[rtr][src][host]}:%{POSINT:[rtr][src][port]:int}\" \"%{IPORHOST:[rtr][dst][host]}:%{POSINT:[rtr][dst][port]:int}\" x_forwarded_for:\"%{GREEDYDATA:[rtr][x_forwarded_for]}\" x_forwarded_proto:\"%{GREEDYDATA:[rtr][x_forwarded_proto]}\" vcap_request_id:\"%{NOTSPACE:[rtr][vcap_request_id]}\" response_time:%{NUMBER:[rtr][response_time_sec]:float} app_id:\"%{NOTSPACE:[rtr][app][id]}\" app_index:\"%{BASE10NUM:[rtr][app][index]:int}\" %{GREEDYDATA:[@metadata][rtr_extra]}" }
-                      tag_on_failure => [ "fail/cloudfoundry/logMessage/rtr/grok" ]
-                    }
-          
-                    if !("fail/cloudfoundry/logMessage/rtr/grok" in [tags]) {
-                        # Set [rtr][timestamp]
-                        mutate {
-                          rename => { "rtr_time" => "[rtr][timestamp]" }
-                        }
-                        # Set [rtr][x_forwarded_for]
-                        mutate {
-                            gsub => ["[rtr][x_forwarded_for]","[\s\"]",""]  # remove quotes and whitespace
-                            split => ["[rtr][x_forwarded_for]", ","]        # format is client, proxy1, proxy2 ...
-                        }
-                        # Set [rtr][remote_addr]
-                        mutate {
-                          add_field => ["[rtr][remote_addr]", "%{[rtr][x_forwarded_for][0]}"]
-                        }
-                        if [rtr][remote_addr] =~ /([0-9]{1,3}\.){3}[0-9]{1,3}/ {
-                            geoip {
-                              source => "[rtr][remote_addr]"
-                            }
-                        }
-                        # Set [rtr][response_time_ms]
-                        mutate {
-                          add_field => { "[rtr][response_time_ms]" => "%{[rtr][response_time_sec]}000" }
-                        }
-                        mutate {
-                          gsub => ["[rtr][response_time_ms]", "\.(\d)(\d)(\d)([\d]{0,3}).*","\1\2\3.\4"]
-                        }
-                        mutate {
-                          convert => { "[rtr][response_time_ms]" => "float" }
-                        }
-                        # Set @message
-                        mutate {
-                          replace => {"@message" => "%{[rtr][status]} %{[rtr][verb]} %{[rtr][path]} (%{[rtr][response_time_ms]} ms)"}
-                        }
-                        # Parsing extra headers like zipkin ...
-                        kv {
-                          source => "[@metadata][rtr_extra]"
-                          target => "[rtr][extra]"
-                          value_split => ":\\\""
-                          trim_value => "\\""
-                        }
-                        if [rtr][status] >= 400 {
-                            mutate {
-                              replace => { "@level" => "ERROR" }
-                            }
-                        } else {
-                            mutate {
-                              replace => { "@level" => "INFO" }
-                            }
-                        }
-                    }
+            if [rtr][hostname] =~ /^.*dev\.cf\.springer-sbm\.com$/ {
+              mutate {
+                add_field => {
+                  "[@cf][onprem]" => "dev"
                 }
               }
-                if [rtr][hostname] =~ /^.*dev\.cf\.springer-sbm\.com$/ {
-                  mutate {
-                  	add_field => {
-                  		"[@cf][onprem]" => "dev"
-                  	}
-                  }
+            }
+            else {
+              mutate {
+                add_field => {
+                  "[@cf][onprem]" => "live"
                 }
-                else {
-                	mutate {
-                		add_field => {
-                			"[@cf][onprem]" => "live"
-                		}
-                	}
-                }
+              }
+            }
           }
           
         filter-52-api-logmessages: |
@@ -349,25 +323,24 @@
           ##-----------------------------
           
           filter {
-              if "throttled" not in [tags] {
-                  if ( [@type] == "LogMessage" and [@source][type] == "api" ) {
           
-                      mutate {
-                          add_tag => [ "api" ]
-                      }
+              if ( [@type] == "LogMessage" and [@source][type] == "api" ) {
           
-                      grok {
-                        match => { "@message" => "%{UUID:[api][uuid]}%{SPACE}\({%{DATA:[api][data]}}\)" }
-                        tag_on_failure => [ "fail/cloudfoundry/logMessage/api/grok" ]
-                      }
-                      if !("fail/cloudfoundry/logMessage/api/grok" in [tags]) {
-                          kv {
-                              source => "[api][data]"
-                              field_split_pattern => "=>"
-                              target => "[api][json]"
-                              trim_key => "\\\""
-                              trim_value => ">\\\""
-                          }
+                  mutate {
+                      add_tag => [ "api" ]
+                  }
+          
+                  grok {
+                    match => { "@message" => "%{UUID:[api][uuid]}%{SPACE}\({%{DATA:[api][data]}}\)" }
+                    tag_on_failure => [ "fail/cloudfoundry/logMessage/api/grok" ]
+                  }
+                  if !("fail/cloudfoundry/logMessage/api/grok" in [tags]) {
+                      kv {
+                          source => "[api][data]"
+                          field_split_pattern => "=>"
+                          target => "[api][json]"
+                          trim_key => "\\\""
+                          trim_value => ">\\\""
                       }
                   }
               }
@@ -379,83 +352,82 @@
           ##-----------------------------
           
           filter {
-              if "throttled" not in [tags] {
-                if [@type] == "LogMessage" and [@source][type] == "app" {
           
-                    mutate {
-                        add_tag => [ "app" ]
-                    }
+              if [@type] == "LogMessage" and [@source][type] == "app" {
           
-                    # Parse application logs based on msg format.
-                    # Marks unknown format with [unknown_msg_format] tag.
+                  mutate {
+                      add_tag => [ "app" ]
+                  }
           
-                    ## ---- Format 1: JSON
-                    if [@message] =~ /^\s*{.*}\s*$/ {                              # if it looks like JSON
-                        json {
-                          source => "@message"
-                          target => "app"
-                          add_tag => [ "json" ]
-                          tag_on_failure => [ "no_json" ]
-                        }
-                        if ("json" in [tags]) {
-                            # @level
-                            if [app][level] {
-                                mutate {
-                                  replace => { "@level" => "%{[app][level]}" }
-                                }
-                            }
-                            if [app][log_level] {
-                                translate {
-                                  field => "[app][log_level]"
-                                  dictionary => [ "0", "DEBUG", "1", "INFO", "2", "ERROR", "3", "FATAL" ]
-                                  destination => "@level"
-                                  override => true
-                                  fallback => "%{[app][log_level]}"
-                                }
-                            }
-                            # set @timestamp from event's timestamp if it is passed
-                            if [app][time] {
-                                # if event's timestamp is not passed then we set @timestamp = event shipping time from firehose-to-syslog
-                                date {
-                                  match => [ "[app][time]", "ISO8601" ]
-                                  tag_on_failure => [ "fail/app/json/time" ]
-                                }
-                            }
-                            if [app][epoch] {
-                                date {
-                                  match => [ "[app][epoch]", "UNIX", "UNIX_MS" ]
-                                  tag_on_failure => [ "fail/app/json/epoch" ]
-                                }
-                            }
-                            if [app][timestamp] {
-                                date {
-                                  match => [ "[app][timestamp]", "ISO8601", "UNIX", "UNIX_MS" ]
-                                  tag_on_failure => [ "fail/app/json/timestamp" ]
-                                }
-                            }
-                        }
-                    ## ---- Format 2: "[CONTAINER] .." (Tomcat logs)
-                    } else if [@message] =~ /^\s*\[CONTAINER\]/ {
-                        # Tomcat specific parsing (in accordance with https://github.com/cloudfoundry/java-buildpack-support/blob/master/tomcat-logging-support/src/main/java/com/gopivotal/cloudfoundry/tomcat/logging/CloudFoundryFormatter.java)
-                        grok {
-                          match => { "@message" => "(?<app_logger>\[CONTAINER\]%{SPACE}%{NOTSPACE})%{SPACE}%{LOGLEVEL:@level}%{SPACE}%{GREEDYDATA:@message}" }
-                          overwrite => [ "@message", "@level" ]
-                          add_tag => [ "tomcat" ]
-                          tag_on_failure => [ "no_tomcat" ]
-                        }
-                        mutate {
-                          rename => { "app_logger" => "[app][logger]" }
-                        }
+                  # Parse application logs based on msg format.
+                  # Marks unknown format with [unknown_msg_format] tag.
           
-                    ## ---- Format 3: Logback status logs
-                    } else {
-                        grok {
-                          match => { "@message" => "%{TIME} \|\-%{LOGLEVEL:@level} in %{NOTSPACE:[app][logger]} - %{GREEDYDATA:@message}" }
-                          overwrite => [ "@message", "@level" ]
-                          tag_on_failure => [ "unknown" ]
-                        }
-                    }
-                }
+                  ## ---- Format 1: JSON
+                  if [@message] =~ /^\s*{.*}\s*$/ {                              # if it looks like JSON
+                      json {
+                        source => "@message"
+                        target => "app"
+                        add_tag => [ "json" ]
+                        tag_on_failure => [ "no_json" ]
+                      }
+                      if ("json" in [tags]) {
+                          # @level
+                          if [app][level] {
+                              mutate {
+                                replace => { "@level" => "%{[app][level]}" }
+                              }
+                          }
+                          if [app][log_level] {
+                              translate {
+                                field => "[app][log_level]"
+                                dictionary => [ "0", "DEBUG", "1", "INFO", "2", "ERROR", "3", "FATAL" ]
+                                destination => "@level"
+                                override => true
+                                fallback => "%{[app][log_level]}"
+                              }
+                          }
+                          # set @timestamp from event's timestamp if it is passed
+                          if [app][time] {
+                              # if event's timestamp is not passed then we set @timestamp = event shipping time from firehose-to-syslog
+                              date {
+                                match => [ "[app][time]", "ISO8601" ]
+                                tag_on_failure => [ "fail/app/json/time" ]
+                              }
+                          }
+                          if [app][epoch] {
+                              date {
+                                match => [ "[app][epoch]", "UNIX", "UNIX_MS" ]
+                                tag_on_failure => [ "fail/app/json/epoch" ]
+                              }
+                          }
+                          if [app][timestamp] {
+                              date {
+                                match => [ "[app][timestamp]", "ISO8601", "UNIX", "UNIX_MS" ]
+                                tag_on_failure => [ "fail/app/json/timestamp" ]
+                              }
+                          }
+                      }
+                  ## ---- Format 2: "[CONTAINER] .." (Tomcat logs)
+                  } else if [@message] =~ /^\s*\[CONTAINER\]/ {
+                      # Tomcat specific parsing (in accordance with https://github.com/cloudfoundry/java-buildpack-support/blob/master/tomcat-logging-support/src/main/java/com/gopivotal/cloudfoundry/tomcat/logging/CloudFoundryFormatter.java)
+                      grok {
+                        match => { "@message" => "(?<app_logger>\[CONTAINER\]%{SPACE}%{NOTSPACE})%{SPACE}%{LOGLEVEL:@level}%{SPACE}%{GREEDYDATA:@message}" }
+                        overwrite => [ "@message", "@level" ]
+                        add_tag => [ "tomcat" ]
+                        tag_on_failure => [ "no_tomcat" ]
+                      }
+                      mutate {
+                        rename => { "app_logger" => "[app][logger]" }
+                      }
+          
+                  ## ---- Format 3: Logback status logs
+                  } else {
+                      grok {
+                        match => { "@message" => "%{TIME} \|\-%{LOGLEVEL:@level} in %{NOTSPACE:[app][logger]} - %{GREEDYDATA:@message}" }
+                        overwrite => [ "@message", "@level" ]
+                        tag_on_failure => [ "unknown" ]
+                      }
+                  }
               }
           }
           
@@ -467,100 +439,98 @@
           # Track issues with application instances
           
           filter {
-              if "throttled" not in [tags] {
-                if ([@type] == "LogMessage" and [@source][type] == "cell") {
+              if ([@type] == "LogMessage" and [@source][type] == "cell") {
           
-                    mutate {
-                        add_tag => [ "cell" ]
-                    }
+                  mutate {
+                      add_tag => [ "cell" ]
+                  }
           
-                    grok {
-                      match => { "@message" => "Cell %{UUID:[cell][uuid]} (?<words>.*) (?<cellinstance>[A-Fa-f0-9]{8}-(?:[A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{4})" }
-                      tag_on_failure => [ "fail/cloudfoundry/logMessage/cell/grok" ]
-                      add_field => { "[cell][instance]" => "%{cellinstance}" }
-                      remove_field => [ "cellinstance" ]
-                    }
+                  grok {
+                    match => { "@message" => "Cell %{UUID:[cell][uuid]} (?<words>.*) (?<cellinstance>[A-Fa-f0-9]{8}-(?:[A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{4})" }
+                    tag_on_failure => [ "fail/cloudfoundry/logMessage/cell/grok" ]
+                    add_field => { "[cell][instance]" => "%{cellinstance}" }
+                    remove_field => [ "cellinstance" ]
+                  }
           
-                    if !("fail/cloudfoundry/logMessage/cell/grok" in [tags]) {
+                  if !("fail/cloudfoundry/logMessage/cell/grok" in [tags]) {
+                      mutate {
+                          split => { "words" => " " }
+                      }
+                      mutate {
+                          lowercase => [ "words[0]" ]
+                          add_field => { "[cell][subject]" => "container" }
+                      }
+          
+                      if "destroying" in [words] {
                         mutate {
-                            split => { "words" => " " }
-                        }
-                        mutate {
-                            lowercase => [ "words[0]" ]
-                            add_field => { "[cell][subject]" => "container" }
-                        }
-          
-                        if "destroying" in [words] {
-                          mutate {
-                              add_field => {
-                                 "[cell][action]" => "destroy"
-                                 "[cell][result]" => "running"
-                              }
-                          }
-                        } else if "destroyed" in [words] {
-                            if "successfully" in [words] {
-                              mutate {
-                                  add_field => {
-                                    "[cell][result]" => "ok"
-                                    "[cell][action]" => "destroy"
-                                  }
-                              }
-                            } else {
-                              mutate {
-                                  add_field => {
-                                    "[cell][result]" => "unknown"
-                                    "[cell][action]" => "destroy"
-                                  }
-                              }
+                            add_field => {
+                               "[cell][action]" => "destroy"
+                               "[cell][result]" => "running"
                             }
-                        } else if "creating" in [words] {
-                          mutate {
-                              add_field => {
-                                 "[cell][action]" => "create"
-                                 "[cell][result]" => "running"
-                              }
-                          }
-                        } else if "created" in [words] {
-                            if "successfully" in [words] {
-                              mutate {
-                                  add_field => {
-                                    "[cell][result]" => "ok"
-                                    "[cell][action]" => "create"
-                                  }
-                              }
-                            } else {
-                              mutate {
-                                  add_field => {
-                                    "[cell][result]" => "unknown"
-                                    "[cell][action]" => "create"
-                                  }
-                              }
+                        }
+                      } else if "destroyed" in [words] {
+                          if "successfully" in [words] {
+                            mutate {
+                                add_field => {
+                                  "[cell][result]" => "ok"
+                                  "[cell][action]" => "destroy"
+                                }
                             }
-                        } else if "stopping" in [words] {
-                          mutate {
-                              add_field => {
-                                 "[cell][action]" => "stop"
-                                 "[cell][result]" => "running"
-                              }
-                          }
-                        } else {
-                          mutate {
-                              add_field => {
-                                  "[cell][action]" => "other"
+                          } else {
+                            mutate {
+                                add_field => {
                                   "[cell][result]" => "unknown"
-                              }
+                                  "[cell][action]" => "destroy"
+                                }
+                            }
                           }
-                        }
+                      } else if "creating" in [words] {
                         mutate {
-                            remove_field => [ "words" ]
+                            add_field => {
+                               "[cell][action]" => "create"
+                               "[cell][result]" => "running"
+                            }
                         }
-                    } else {
+                      } else if "created" in [words] {
+                          if "successfully" in [words] {
+                            mutate {
+                                add_field => {
+                                  "[cell][result]" => "ok"
+                                  "[cell][action]" => "create"
+                                }
+                            }
+                          } else {
+                            mutate {
+                                add_field => {
+                                  "[cell][result]" => "unknown"
+                                  "[cell][action]" => "create"
+                                }
+                            }
+                          }
+                      } else if "stopping" in [words] {
                         mutate {
-                            remove_tag => [ "fail/cloudfoundry/logMessage/cell/grok" ]
+                            add_field => {
+                               "[cell][action]" => "stop"
+                               "[cell][result]" => "running"
+                            }
                         }
-                    }
-                }
-            }
+                      } else {
+                        mutate {
+                            add_field => {
+                                "[cell][action]" => "other"
+                                "[cell][result]" => "unknown"
+                            }
+                        }
+                      }
+                      mutate {
+                          remove_field => [ "words" ]
+                      }
+                  } else {
+                      mutate {
+                          remove_tag => [ "fail/cloudfoundry/logMessage/cell/grok" ]
+                      }
+                  }
+              }
           }
           
         filter-58-ssh-logmessages: |
@@ -569,29 +539,27 @@
           ##-----------------------------
           
           filter {
-              if "throttled" not in [tags] {
-                if ( [@type] == "LogMessage" and [@source][type] == "ssh" ) {
+              if ( [@type] == "LogMessage" and [@source][type] == "ssh" ) {
           
-                    mutate {
-                        add_tag => [ "ssh" ]
-                    }
+                  mutate {
+                      add_tag => [ "ssh" ]
+                  }
           
-                    grok {
-                      match => { "@message" => "%{IP:[ssh][ip]}:%{POSINT:[ssh][port]}" }
-                      tag_on_failure => [ "fail/cloudfoundry/logMessage/ssh/grok" ]
-                    }
-                    if !("fail/cloudfoundry/logMessage/ssh/grok" in [tags]) {
-                        if [@message] =~ / ended / {
-                          mutate {
-                              add_field => { "[ssh][action]" => "end" }
-                          }
-                        } else {
-                          mutate {
-                              add_field => { "[ssh][action]" => "start" }
-                          }
+                  grok {
+                    match => { "@message" => "%{IP:[ssh][ip]}:%{POSINT:[ssh][port]}" }
+                    tag_on_failure => [ "fail/cloudfoundry/logMessage/ssh/grok" ]
+                  }
+                  if !("fail/cloudfoundry/logMessage/ssh/grok" in [tags]) {
+                      if [@message] =~ / ended / {
+                        mutate {
+                            add_field => { "[ssh][action]" => "end" }
                         }
-                    }
-                }
+                      } else {
+                        mutate {
+                            add_field => { "[ssh][action]" => "start" }
+                        }
+                      }
+                  }
               }
           }
           
@@ -601,14 +569,12 @@
           ##------------------------------
           
           filter {
-              if "throttled" not in [tags] {
-          	    if ( [@type] == "LogMessage" and [@source][type] == "lgr" ) {
+              if ( [@type] == "LogMessage" and [@source][type] == "lgr" ) {
           
-          	        mutate {
-          	            add_tag => [ "lgr" ]
-          	        }
+                  mutate {
+                      add_tag => [ "lgr" ]
+                  }
           
-          	    }
               }
           }
           
@@ -620,35 +586,33 @@
           # Apply default settings for mandatory fields (if not set)
           
           filter {
-              if "throttled" not in [tags] {
-                  # set syslog @level (if @level is not set yet)
-                  if ![@level] and [syslog_severity_code] {
-                      if [syslog_severity_code] <= 3 {                # 0-Emergency, 1-Alert, 2-Critical, 3-Error
-                          mutate {
-                              add_field => { "@level" => "ERROR" }
-                          }
-                      } else if [syslog_severity_code] <= 5 {         # 4-Warning, 5-Notice
-                          mutate {
-                              add_field => { "@level" => "WARN" }
-                          }
-                      } else if [syslog_severity_code] == 6 {         # 6-Informational
-                          mutate {
-                              add_field => { "@level" => "INFO" }
-                          }
-                      } else if [syslog_severity_code] == 7 {         # 7-Debug
-                          mutate {
-                              add_field => { "@level" => "DEBUG" }
-                          }
-                      }
-                  } else {
+              # set syslog @level (if @level is not set yet)
+              if ![@level] and [syslog_severity_code] {
+                  if [syslog_severity_code] <= 3 {                # 0-Emergency, 1-Alert, 2-Critical, 3-Error
                       mutate {
-                          uppercase => [ "@level" ]
+                          add_field => { "@level" => "ERROR" }
+                      }
+                  } else if [syslog_severity_code] <= 5 {         # 4-Warning, 5-Notice
+                      mutate {
+                          add_field => { "@level" => "WARN" }
+                      }
+                  } else if [syslog_severity_code] == 6 {         # 6-Informational
+                      mutate {
+                          add_field => { "@level" => "INFO" }
+                      }
+                  } else if [syslog_severity_code] == 7 {         # 7-Debug
+                      mutate {
+                          add_field => { "@level" => "DEBUG" }
                       }
                   }
-          	 mutate {
-                     copy => { "@level" => "@index_level" }
-                     lowercase => ["@index_level", "@level"]
+              } else {
+                  mutate {
+                      uppercase => [ "@level" ]
                   }
+              }
+              mutate {
+                 copy => { "@level" => "@index_level" }
+                 lowercase => ["@index_level", "@level"]
               }
           }
           
@@ -659,17 +623,15 @@
           ##--------------------------
           
           filter {
-              if "throttled" not in [tags] {
-          	    mutate {
-          	        # Remove syslog_ fields
-          	        remove_field => "syslog_facility"
-          	        remove_field => "syslog_facility_code"
-          	        remove_field => "syslog_severity"
-          	        remove_field => "syslog_severity_code"
+              mutate {
+                  # Remove syslog_ fields
+                  remove_field => "syslog_facility"
+                  remove_field => "syslog_facility_code"
+                  remove_field => "syslog_severity"
+                  remove_field => "syslog_severity_code"
           
-          	        # Cleanup
-          	        remove_field => "@version"
-          	    }
+                  # Cleanup
+                  remove_field => "@version"
               }
           }
           
@@ -691,88 +653,47 @@
           
         output-10-statsd: |
           output {
-            if "throttled" not in [tags] {
-              if ([@type] == "LogMessage" and [@input] == "syslog") {
-                statsd {
-                  host => "${STATSD_HOST}"
-                  port => "${STATSD_PORT}"
-                  protocol => "udp"
-                  namespace => "${DEPLOYMENT_NAME}"
-                  sender => "%{[@cf][api]}"
-                  gauge => {
-                    "%{[@cf][org]}" => "+1"
-                    "%{[@cf][org]}.%{[@cf][space]}" => "+1"
-                    "%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}" => "+1"
-                  }
-                  id => "output-statsd/${JOB_FULL_AZ_DEPLOYMENT}"
-                }
-                if [@generator] == "APP" {
-                    statsd {
-                      host => "${STATSD_HOST}"
-                      port => "${STATSD_PORT}"
-                      protocol => "udp"
-                      namespace => "${DEPLOYMENT_NAME}"
-                      sender => "%{[@cf][api]}"
-                      gauge => {
-                        "%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.%{[@source][src]}" => "+1"
-                      }
-                      id => "output-statsd-stdout-stderr/${JOB_FULL_AZ_DEPLOYMENT}"
-                    }
-                }
-              }
-            }
-          }
-        output-15-throttle: |
-          output {
-          
-            if "exceed_rate_limit" in [tags] {
-                statsd {
-                  host => "${STATSD_HOST}"
-                  port => "${STATSD_PORT}"
-                  protocol => "udp"
-                  namespace => "${DEPLOYMENT_NAME}"
-                  sender => "%{[@cf][api]}"
-                  gauge => { "throttled.%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.exceed_limit" => "+1" }
-               }
-          
-            }  else if "throttled_same_message" in [tags] {
-                statsd {
-                  host => "${STATSD_HOST}"
-                  port => "${STATSD_PORT}"
-                  protocol => "udp"
-                  namespace => "${DEPLOYMENT_NAME}"
-                  sender => "%{[@cf][api]}"
-                  gauge => {  "throttled.%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.same_message" => "+1" }
-                }
-            }  else {
-                statsd {
+            if ([@type] == "LogMessage" and [@input] == "syslog") {
+              statsd {
                 host => "${STATSD_HOST}"
                 port => "${STATSD_PORT}"
                 protocol => "udp"
                 namespace => "${DEPLOYMENT_NAME}"
                 sender => "%{[@cf][api]}"
-                gauge => { "throttled.%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.not_throttled" => "+1" }
+                gauge => {
+                  "%{[@cf][org]}" => "+1"
+                  "%{[@cf][org]}.%{[@cf][space]}" => "+1"
+                  "%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}" => "+1"
                 }
+                id => "output-statsd/${JOB_FULL_AZ_DEPLOYMENT}"
               }
-          
+              if [@generator] == "APP" {
+                  statsd {
+                    host => "${STATSD_HOST}"
+                    port => "${STATSD_PORT}"
+                    protocol => "udp"
+                    namespace => "${DEPLOYMENT_NAME}"
+                    sender => "%{[@cf][api]}"
+                    gauge => {
+                      "%{[@cf][org]}.%{[@cf][space]}.%{[@cf][app]}.%{[@source][src]}" => "+1"
+                    }
+                    id => "output-statsd-stdout-stderr/${JOB_FULL_AZ_DEPLOYMENT}"
+                  }
+              }
+            }
           }
-          
-          
-          
         output-50-es: |
           output {
-            if "throttled" not in [tags] {
-              elasticsearch {
-                # DS_HOSTS is default from elasticsearch_master property
-                hosts => [ "${DST_HOSTS}" ]
-                user => "${ES_USER}"
-                password => "${ES_PASSWORD}"
-                sniffing => false
-                index => "${ES_INDEX_PREFIX:logs}-%{[@index_level]}-${ES_VERSION:v0.0}-%{+YYYY.MM.dd}"
-                http_compression => true
-                manage_template => false
-                id => "output-es/${JOB_FULL_AZ_DEPLOYMENT}"
-              }
-              # stdout { codec => rubydebug }
+            elasticsearch {
+              # DS_HOSTS is default from elasticsearch_master property
+              hosts => [ "${DST_HOSTS}" ]
+              user => "${ES_USER}"
+              password => "${ES_PASSWORD}"
+              sniffing => false
+              index => "${ES_INDEX_PREFIX:logs}-%{[@index_level]}-${ES_VERSION:v0.0}-%{+YYYY.MM.dd}"
+              http_compression => true
+              manage_template => false
+              id => "output-es/${JOB_FULL_AZ_DEPLOYMENT}"
             }
+            # stdout { codec => rubydebug }
           }
