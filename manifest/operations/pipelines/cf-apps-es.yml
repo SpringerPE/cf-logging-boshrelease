@@ -365,9 +365,27 @@
                           if [app][log_level] {
                               translate {
                                 field => "[app][log_level]"
-                                dictionary => [ "0", "DEBUG", "1", "INFO", "2", "ERROR", "3", "FATAL" ]
+                                # see https://success.trendmicro.com/solution/TP000086250-What-are-Syslog-Facilities-and-Levels for standard mapping
+                                dictionary => {
+                                                "0" => "EMERGENCY"
+                                                "1" => "ALERT"
+                                                "2" => "CRITICAL"
+                                                "3" => "ERROR"
+                                                "4" => "WARN"
+                                                "5" => "NOTICE"
+                                                "6" => "INFO"
+                                                "7" => "DEBUG"
+                                                # Custom levels we encountered so far
+                                                # See https://github.com/springernature/ee-snpaas-logging/blob/master/bosh-deployments/elastic-stack/operations/50-curator.yml
+                                                # for mapping influence
+                                                "20000" => "INFO"
+                                                "30" => "INFO"
+                                                "30000" => "WARN"
+                                                "40000" => "ERROR"
+                                }
                                 destination => "@level"
                                 override => true
+                                # perhaps fallback (umatched mapping) we should fix as INFO ?
                                 fallback => "%{[app][log_level]}"
                               }
                           }
