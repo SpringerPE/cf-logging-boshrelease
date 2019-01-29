@@ -636,6 +636,14 @@
               #}
           }
           
+        input-20-dlq: |
+          input {
+            dead_letter_queue {
+              path => "/var/vcap/store/logstash/plugins/inputs/dead_letter_queue"
+              commit_offsets => true
+              pipeline_id => "cf-apps-es"
+            }
+          }
         output-10-statsd: |
           output {
             if ([@type] == "LogMessage" and [@input] == "syslog") {
@@ -665,6 +673,20 @@
                     id => "output-statsd-stdout-stderr/${JOB_FULL_AZ_DEPLOYMENT}"
                   }
               }
+            }
+          }
+        output-20-dlq: |
+          output {
+            elasticsearch {
+              # DS_HOSTS is default from elasticsearch_master property
+              hosts => [ "${DST_HOSTS}" ]
+              user => "${ES_USER}"
+              password => "${ES_PASSWORD}"
+              sniffing => false
+              index => "${ES_INDEX_PREFIX:logs}-dlq-%{[@cf][app]}-${ES_VERSION:v0.0}-%{+YYYY.MM.dd}"
+              http_compression => true
+              manage_template => false
+              id => "output-dlq/${JOB_FULL_AZ_DEPLOYMENT}"
             }
           }
         output-50-es: |
