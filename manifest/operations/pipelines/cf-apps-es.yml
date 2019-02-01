@@ -612,6 +612,29 @@
           }
           
           
+        filter-91-change-level-str: |
+          ##-------------------
+          # change index level from int to string
+          ##-------------------
+          
+          # Some apps send logs with an int as the log level, which affects the number of indices that we have.
+          # If we change it to string, then we will have less indices.
+          
+          filter {
+              if [@index_level] == "20000" {
+          				mutate {
+          						replace => [ "@index_level", "info" ]
+          				}
+              } else if [@index_level] == "30000" {
+          				mutate {
+          						replace => [ "@index_level", "warn" ]
+          				}
+              } else if [@index_level] == "40000" {
+          				mutate {
+          						replace => [ "@index_level", "error" ]
+          				}
+          		}
+          }
         filter-99-cleanup: |
           ##--------------------------
           # Cleanup unnecessary fields
