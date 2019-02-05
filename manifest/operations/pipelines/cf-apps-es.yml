@@ -563,16 +563,6 @@
               }
           }
           
-        filter-60-dlq: |
-          ##------------------------------
-          ## Handles Dead Letter Queues filters
-          ##------------------------------
-          
-          filter {
-          	mutate {
-          		lowercase => ["[@cf][app]"]
-          		}
-          }
         filter-90-set_syslog_level: |
           ##-------------------
           # define syslog level
