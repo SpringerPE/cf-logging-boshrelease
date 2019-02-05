@@ -624,6 +624,12 @@
           						replace => [ "@index_level", "error" ]
           				}
           		}
+          
+          		if [@index_level] not in ["info", "warn", "error", "debug"] {
+          				mutate {
+          						replace => [ "@index_level", "unknown" ]
+          				}
+          		}
           }
         filter-99-cleanup: |
           ##--------------------------
