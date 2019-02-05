@@ -103,7 +103,10 @@ properties:
       ES Template to apply to ES. You also will need to define "manage_template: true" and
       "template_name" in the output config of your pipeline. The path of the template will
       be in the variable "${TEMPLATE_PATH}"
-
+  logstash.max_open_files:
+    description: |
+      The number of file allowed to be opened by the Logstash process
+    default: 16384
   elasticsearch.master_hosts:
     description: |
       The list of elasticsearch master node IPs. They will be defined
