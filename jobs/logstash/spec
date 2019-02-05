@@ -6,6 +6,7 @@ description: Logstash job able to define multiple pipelines, templates, environm
 templates:
   bin/ctl: bin/ctl
   bin/pre-start: bin/pre-start
+  bin/post-start: bin/post-start
   config/confd.sh.erb: config/confd.sh
   config/pipelines.yml.erb: config/logstash/pipelines.yml
   config/log4j2.properties: config/logstash/log4j2.properties
