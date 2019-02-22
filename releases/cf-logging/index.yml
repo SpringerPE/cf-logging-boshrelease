@@ -27,4 +27,6 @@ builds:
     version: "4.1"
   deb1ad72-5b8a-42fc-579b-fe43026987c2:
     version: "2"
+  ea51d214-3ab0-493f-6a58-47b2e9ed6245:
+    version: "5.5"
 format-version: "2"
