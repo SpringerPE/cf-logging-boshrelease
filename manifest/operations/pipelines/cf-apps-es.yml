@@ -47,6 +47,10 @@
   path: /instance_groups/name=logstash/properties/logstash/pipelines?
   value:
     - name: cf-apps-es
+      params:
++        queue.type: persisted
++        queue.max_bytes: 1gb
++        path.queue: /var/vcap/store/logstash
       config:
         filter-00-prefiltering: |
           ##-------------
