@@ -47,10 +47,6 @@
   path: /instance_groups/name=logstash/properties/logstash/pipelines?
   value:
     - name: cf-apps-es
-      params:
-+        queue.type: persisted
-+        queue.max_bytes: 1gb
-+        path.queue: /var/vcap/store/logstash
       config:
         filter-00-prefiltering: |
           ##-------------
@@ -708,7 +704,7 @@
               user => "${ES_USER}"
               password => "${ES_PASSWORD}"
               sniffing => false
-              index => "${ES_INDEX_PREFIX:logs}-%{[@index_level]}-${ES_VERSION:v0.0}-%{+YYYY.MM.dd}-1"
+              index => "logs-%{[@index_level]}"
               http_compression => true
               manage_template => false
               id => "output-es/${JOB_FULL_AZ_DEPLOYMENT}"
