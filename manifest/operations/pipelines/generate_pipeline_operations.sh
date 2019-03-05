@@ -84,6 +84,10 @@ add_oper_snippets() {
   path: /instance_groups/name=logstash/properties/logstash/pipelines?
   value:
     - name: ${name}
+      params:
+        queue.type: persisted
+        queue.max_bytes: 8gb
+        path.queue: /var/vcap/store/logstash
       config:
 OperSNIPPETS
 
