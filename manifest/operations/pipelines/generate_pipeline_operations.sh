@@ -86,7 +86,7 @@ add_oper_snippets() {
     - name: ${name}
       params:
         queue.type: persisted
-        queue.max_bytes: 8gb
+        queue.max_bytes: 90gb
         path.queue: /var/vcap/store/logstash
       config:
 OperSNIPPETS
