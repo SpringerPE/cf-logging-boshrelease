@@ -475,7 +475,7 @@
                           split => { "words" => " " }
                       }
                       mutate {
-                          lowercase => [ "words[0]" ]
+                          lowercase => [ "[words][0]" ]
                           add_field => { "[cell][subject]" => "container" }
                       }
           
