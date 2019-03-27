@@ -240,6 +240,7 @@
                           rename => {
                               "source_type" => "[@source][type]"
                               "msg" => "@message"
+          		    "level" => "@level"
                           }
                           lowercase => ["[@source][type]"]
                       }
