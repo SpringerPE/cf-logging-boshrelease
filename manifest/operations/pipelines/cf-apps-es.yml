@@ -136,6 +136,13 @@
                   add_tag => [ "cf" ]
               }
               if !("fail/syslog-5424/cf/grok" in [tags]) {
+          	# This will block that specific app from sending logs to Elasticsearch.
+          	# It's useful to prevent an app from flooding the ELK cluster with too many logs,
+          	# for example.
+          	if [app] == "ACDCAuditTrailApplication" {
+          		drop { }
+          	}
+          
                   mutate {
                       rename => {
                           "org" => "[@cf][org]"
@@ -215,35 +222,6 @@
                       }
                       remove_field => [ "syslog5424_ver", "syslog5424_pri", "syslog5424_proc", "syslog5424_app", "syslog5424_host", "syslog_code" ]
                   }
-              }
-          
-              if ("fail/syslog-5424/grok" in [tags]) {
-                      grok {
-                          match => {
-                              "@message" => "%{SYSLOGLINE}"
-                          }
-                          add_tag => ["syslog-3164"]
-                          add_field => {
-                              "@type" => "LogMessage"
-                              "@raw" => "%{@message}"
-                          }
-                          tag_on_failure => ["fail/syslog-3164/grok"]
-                      }
-          
-                      json {
-                          skip_on_invalid_json => true  # only parse if the field actually contains JSON
-                          source => "message"
-                          add_tag => ["json_message"]
-                      }
-          
-                      mutate {
-                          rename => {
-                              "source_type" => "[@source][type]"
-                              "msg" => "@message"
-          		    "level" => "@level"
-                          }
-                          lowercase => ["[@source][type]"]
-                      }
               }
             }
           }
