@@ -8,6 +8,9 @@ logstash/logstash-6.3.1.tar.gz:
 logstash/logstash-6.6.0.tar.gz:
   size: 169625333
   sha: 07304b461239ed86383427823b6ed3a3bff33c4b
+logstash/logstash-6.6.1.tar.gz:
+  size: 169642354
+  sha: 87e98220b0ca1333538bf109c2fec35713dc083b
 openjdk-1.8/openjdk-1.8.0_172.tar.gz:
   size: 77631973
   sha: e308bf64a796bc55ea4faf0e8097d8ddf9fba1a4
