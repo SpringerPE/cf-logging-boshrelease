@@ -280,6 +280,13 @@
           filter {
           
             if ([@type] == "LogMessage" and [@source][type] == "rtr") {
+               # This condition will drop RTR logs unless they are enabled
+               # (which will only be the case if they are sent to port 5515)
+               # Give that it is a breaking change, we should only apply it after letting
+               # developers know. That's why, for know, it is commented out
+               # if (![@rtr][enabled]) {
+               #         drop { }
+               # }
           
                 mutate {
                     add_tag => [ "rtr" ]
@@ -704,6 +711,16 @@
               #    tags => []
               #    add_field => { "_index_name" => "syslog" }
               #}
+          }
+          
+        input-11-rtr-enabled: |
+          input {
+              tcp {
+                add_field => [ "@input", "syslog" ]
+                add_field => [ "[@rtr][enabled]", true ]
+                id => "input-syslog-rtr/${JOB_FULL_AZ_DEPLOYMENT}"
+                port => "5515"
+              }
           }
           
         output-10-statsd: |
