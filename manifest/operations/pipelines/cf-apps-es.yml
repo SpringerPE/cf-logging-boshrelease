@@ -51,35 +51,7 @@
         queue.type: persisted
         queue.max_bytes: 90gb
         path.queue: /var/vcap/store/logstash
-        dead_letter_queue.enable: true
       config:
-        dlq-00: |
-          input {
-            dead_letter_queue {
-              path => "var/vcap/store/logstash/dead_letter_queue"
-              commit_offsets => true
-              pipeline_id => "cf-apps-es"
-            }
-          }
-          
-          filter {
-            mutate {
-          
-            }
-          }
-          output {
-            elasticsearch {
-              # DS_HOSTS is default from elasticsearch_master property
-              hosts => [ "${DST_HOSTS}" ]
-              user => "${ES_USER}"
-              password => "${ES_PASSWORD}"
-              sniffing => false
-              #index => "logs-dlq-%%{[@cf][app]}
-              http_compression => true
-              manage_template => false
-              id => "dlq/${JOB_FULL_AZ_DEPLOYMENT}"
-            }
-          }
         filter-00-prefiltering: |
           ##-------------
           # Pre filtering
