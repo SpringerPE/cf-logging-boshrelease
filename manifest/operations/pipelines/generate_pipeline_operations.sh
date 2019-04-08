@@ -88,7 +88,6 @@ add_oper_snippets() {
         queue.type: persisted
         queue.max_bytes: 90gb
         path.queue: /var/vcap/store/logstash
-        dead_letter_queue.enable: true
       config:
 OperSNIPPETS
 
@@ -116,7 +115,7 @@ list_snippets() {
     while IFS=  read -r -d $'\0' line
     do
         snippets+=($(basename "${line}"))
-    done < <(find ${folder} -type f -name "*.conf" -print0 | sort -z)
+    done < <(find ${folder} -xtype f -name "*.conf" -print0 | sort -z)
     for i in ${snippets[@]}
     do
         echo "${i}"
