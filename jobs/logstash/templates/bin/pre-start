@@ -20,11 +20,6 @@ mkdir -p "$CONFD_DIR" && chmod 775 "$CONFD_DIR" && chown vcap.vcap "$CONFD_DIR"
 cd "${CONFD_DIR}"
 source /var/vcap/jobs/logstash/config/confd.sh
 
-# setup dead letter queues folder
-export DLQ_DIR="/var/vcap/store/logstash/plugins/inputs/dead_letter_queue"
-mkdir -p "$DLQ_DIR"
-chown vcap.vcap "$DLQ_DIR"
-
 # Install plugins
 <% p("logstash.plugins").each do |plugin| %>
 logstash-plugin install \
