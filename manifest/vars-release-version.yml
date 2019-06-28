@@ -1,5 +1,5 @@
 releases:
 - name: cf-logging
-  url: https://github.com/SpringerPE/cf-logging-boshrelease/releases/download/v6/cf-logging-6.tgz
-  version: 6
-  sha1: 65cef953ee3686b15981c6483e3ba991bb6dc8dc
+  url: https://github.com/SpringerPE/cf-logging-boshrelease/releases/download/v6.1/cf-logging-6.1.tgz
+  version: 6.1
+  sha1: 0176e624adb12f0ff21a3016de7e53a43cca337e
