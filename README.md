@@ -133,6 +133,9 @@ reason you need to recreate a release version, delete the file created in
 `releases/cf-logging-boshrelease` and update the index file in the same location,
 you also need to remove the release (and tags) in Github.
 
+When creating a major release make sure not to use `.0` annotation.
+for ex: Release 7, `./create-final-public-release.sh 7` (not 7.0)
+
 
 # Usage in a deployment manifest
 
