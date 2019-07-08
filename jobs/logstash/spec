@@ -6,6 +6,7 @@ description: Logstash job able to define multiple pipelines, templates, environm
 templates:
   bin/ctl: bin/ctl
   bin/pre-start: bin/pre-start
+  bin/drain: bin/drain
   config/confd.sh.erb: config/confd.sh
   config/pipelines.yml.erb: config/logstash/pipelines.yml
   config/log4j2.properties: config/logstash/log4j2.properties
@@ -103,6 +104,21 @@ properties:
       ES Template to apply to ES. You also will need to define "manage_template: true" and
       "template_name" in the output config of your pipeline. The path of the template will
       be in the variable "${TEMPLATE_PATH}"
+  logstash.health.disable_drain_script:
+    description: |
+      If set to true, drain script is disabled and buffer size will be ignored during deployment.
+    default: false
+  logstash.health.timeout:
+    description: |
+      The amount of time, in seconds, that the drain script will wait for an empty buffer until it times out.
+    default: 300
+  logstash.health.interval:
+    description: |
+      The amount of time that the drain script will wait until it checks if the buffer is empty or not.
+    default: 15
+  logstash.health.pipeline_name:
+    description: |
+      The pipeline name for which we want to check if buffer is empty. Mandatory attribute.
   logstash.max_open_files:
     description: |
       The number of file allowed to be opened by the Logstash process

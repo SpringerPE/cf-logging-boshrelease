@@ -1,0 +1,34 @@
+#!/bin/bash
+# Inspired by https://github.com/bosh-elastic-stack/elasticsearch-boshrelease/blob/master/jobs/elasticsearch/templates/bin/post-start
+# If a command fails, exit immediately
+set -e
+
+export drain_script_disabled=<%= p("logstash.health.disable_drain_script") %>
+
+export timeout=<%= p("logstash.health.timeout") %>
+export polling_frequency=<%= p("logstash.health.interval") %>
+
+export max_attempts=$((timeout / polling_frequency))
+export attempts=0
+
+DIR_LOG="/var/vcap/sys/log/logstash/drain.log"
+
+buffer_size=$(ls /var/vcap/store/logstash/<%= p("logstash.health.pipeline_name") %>/page* | wc -l)
+
+if ! $drain_script_disabled; then
+  while [[ $buffer_size -ge 2 ]]; do
+    echo "Buffer is not empty, waiting..." >> $DIR_LOG
+    if [[ $attempts -ge $max_attempts ]]; then
+      echo "Drain script timed out while waiting for buffer to be empty!" >> $DIR_LOG
+      exit 1
+    fi
+    attempts=$(($attempts + 1))
+    sleep "$polling_frequency"
+    buffer_size=$(ls /var/vcap/store/logstash/<%= p("logstash.health.pipeline_name") %>/page* | wc -l)
+  done
+else
+  echo "Skipping drain-script..." >> $DIR_LOG
+fi
+
+echo 0
+exit 0
