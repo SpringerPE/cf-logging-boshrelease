@@ -2,4 +2,4 @@ releases:
 - name: cf-logging
   url: https://github.com/SpringerPE/cf-logging-boshrelease/releases/download/v7/cf-logging-7.tgz
   version: 7
-  sha1: 6be79e6214313e930128317e2879efe96797ea79
+  sha1: 87ed588668542ab98f5da510a20ea01baa4f15e5
