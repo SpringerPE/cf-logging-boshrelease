@@ -1,21 +1,28 @@
 golang/go1.10.linux-amd64.tar.gz:
   size: 119905205
-  sha: sha256:b5a64335f1490277b585832d1f6c7f8c6c11206cba5cd3f771dcb87b98ad1a33
+  object_id: 0a4f076f-a7b1-4641-56e0-9fa2024f8605
+  sha: 693e2dfd99ef2d608b41c450efd9d277bf2a7f2f
 logstash/logstash-7.2.0.tar.gz:
   size: 171299740
-  sha: sha256:ef1ea1cbe9924ae3b61fabdca5ab5af60f8740b87050e13d7f312139b23cd732
+  object_id: 60ac5b36-0c9e-4b05-4c87-c6de520c407c
+  sha: fc0f949d0aae8c205bbde6ff7b9a1873a150b8a1
 openjdk-1.8/openjdk-1.8.0_172.tar.gz:
   size: 77631973
-  sha: sha256:9287eda198990c8cfae8a23db725283a040f82555f87086ed5447690a2869f5a
+  object_id: 1d08b180-553c-48a8-5a88-11010c457b36
+  sha: e308bf64a796bc55ea4faf0e8097d8ddf9fba1a4
 ruby-2.3/bundler-1.16.3.gem:
   size: 353792
-  sha: sha256:d89111fd6fcea3039df8f945a6be00988e29f32f9271ee35a14c7b83a36ced6a
+  object_id: 315ccb99-c9b7-4852-70f6-bfbd8b2d71df
+  sha: ca6a670c29d2928a8dca24ee95a7978c8a532e36
 ruby-2.3/rake-12.3.1.gem:
   size: 84992
-  sha: sha256:cf37840d136743411e4bd601885363e34dce537675306464528b0cafe428b1c5
+  object_id: 92dbefc3-d1da-487b-7588-9898dca3dca8
+  sha: d0dab0b05fcf7ecd11065e16ce74211e4b60c6cd
 ruby-2.3/ruby-2.3.7.tar.gz:
   size: 17859100
-  sha: sha256:35cd349cddf78e4a0640d28ec8c7e88a2ae0db51ebd8926cd232bb70db2c7d7f
+  object_id: a8fc9e90-5d8e-4348-4e65-632b2d0efacc
+  sha: 540996fec64984ab6099e34d2f5820b14904f15a
 ruby-2.3/rubygems-2.7.7.tgz:
   size: 915847
-  sha: sha256:4cb2c9a36c0e4a3d5c20eb6795638632858fd72236d281963140221946ab55cb
+  object_id: 21926e03-6f32-4c74-5b55-e24ca1a2dd78
+  sha: 2ee981e5e8331071b29e7599f9b45ae2d79ed975
