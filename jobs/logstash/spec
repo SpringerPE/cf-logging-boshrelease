@@ -6,6 +6,7 @@ description: Logstash job able to define multiple pipelines, templates, environm
 templates:
   bin/ctl: bin/ctl
   bin/pre-start: bin/pre-start
+  bin/post-start: bin/post-start
   bin/drain: bin/drain
   config/confd.sh.erb: config/confd.sh
   config/pipelines.yml.erb: config/logstash/pipelines.yml
@@ -108,6 +109,10 @@ properties:
     description: |
       If set to true, drain script is disabled and buffer size will be ignored during deployment.
     default: false
+  logstash.health.disable_post_start:
+    description: |
+      If set to true, post-start script is disabled.
+    default: false
   logstash.health.timeout:
     description: |
       The amount of time, in seconds, that the drain script will wait for an empty buffer until it times out.
@@ -116,13 +121,24 @@ properties:
     description: |
       The amount of time that the drain script will wait until it checks if the buffer is empty or not.
     default: 15
+  logstash.health.poststart.timeout:
+    description: |
+      The amount of time (in seconds), in seconds, that the post-start script will wait until it times out.
+    default: 300
+  logstash.health.poststart.interval:
+    description: |
+      The amount of time (in seconds) that the post-start script will wait until it checks if the pipeline is running.
+    default: 15
   logstash.health.pipeline_name:
     description: |
-      The pipeline name for which we want to check if buffer is empty. Mandatory attribute.
+      The pipeline name for which we want to check if buffer is empty and wait for it to start on post-start script. Mandatory attribute.
   logstash.max_open_files:
     description: |
       The number of file allowed to be opened by the Logstash process
     default: 16384
+  logstash.client.port:
+    description: The port on which logstash will be running.
+    default: 9600
   elasticsearch.master_hosts:
     description: |
       The list of elasticsearch master node IPs. They will be defined

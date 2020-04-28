@@ -1,0 +1,46 @@
+#!/bin/bash
+# Inspired by https://github.com/cloudfoundry/exemplar-release/blob/master/jobs/paragon/templates/post-start
+# If a command fails, exit immediately
+set -e
+
+<% if !p("logstash.health.disable_post_start") %>
+
+export timeout=<%= p("logstash.health.poststart.timeout") %>
+export polling_frequency=<%= p("logstash.health.poststart.interval") %>
+
+export max_attempts=$((timeout / polling_frequency))
+export attempts=0
+out=$(mktemp health-XXXXXX)
+
+export url=http://localhost:<%= p("logstash.client.port") %>/_node/stats/pipelines/<%= p("logstash.health.pipeline_name") %>
+
+while [[ "$max_attempts" -ge "$attempts" ]]; do
+    set +e
+    echo "attempt $attempts"
+
+    curl -sf -w '\n%{http_code}' -k $url > ${out}
+
+    body=$(cat ${out} | head -n -1)
+    status=$(cat ${out} | tail -n 1)
+    echo "body: ${body}"
+    echo "status: ${status}"
+
+    if [ "${status}" = "200" ] ; then
+        rm ${out}
+        exit 0
+    fi
+    set -e
+
+    attempts=$(($attempts + 1))
+
+    sleep "$polling_frequency"
+done
+
+rm ${out}
+exit 1
+
+<% else %>
+
+echo "Skipping post-start..."
+
+<% end %>
