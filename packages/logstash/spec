@@ -5,4 +5,4 @@ dependencies:
 - openjdk-1.8
 
 files:
-- logstash/logstash-7.4.2.tar.gz    # https://artifacts.elastic.co/downloads/logstash/logstash-7.4.2.tar.gz
+- logstash/logstash-7.6.2.tar.gz    # https://artifacts.elastic.co/downloads/logstash/logstash-7.6.2.tar.gz
